@@ -13,9 +13,7 @@ jobs:
         with:
           ref: master
       - run: |
-          git fetch --all
-          git pull origin master
-          docker-compose build
-          docker-compose down
-          docker-compose up -d
+          docker compose build
+          docker compose down
+          docker compose up -d
           docker system prune -f
