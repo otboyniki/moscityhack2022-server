@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  server:
+    restart: on-failure
+    image: moscityhack2022-server
+    ports:
+      - "127.0.0.1:8080:80"
+    build: .
+    volumes:
+      - ../docker/wwwroot/files:/app/wwwroot/files
+
+  db:
+    restart: always
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=moscityhackDB
+      - POSTGRES_PASSWORD=eef68003-f1bb-4051-8693-232fa7763374
+    volumes:
+      - ../docker/database/pg/:/var/lib/postgresql/data/
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  nginx:
+    container_name: nginx
+    image: nginx:alpine
+    restart: always
+    network_mode: host
+    volumes:
+      - ./ci-cd/nginx.d:/etc/nginx/conf.d:ro
