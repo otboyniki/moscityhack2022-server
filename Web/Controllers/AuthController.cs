@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Web.Data;
 using Web.Data.Entities;
 using Web.Data.Enums;
-using Web.Models;
+using Web.Exceptions;
 
 namespace Web.Controllers;
 
@@ -28,19 +28,19 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost, Route("/fast-registration")]
-    public async Task<ActionResult> FastRegistration(string? email,
-                                                     string? phone,
-                                                     CancellationToken cancellationToken,
-                                                     [FromServices] DataContext dataContext)
+    public async Task<Guid> FastRegistration(string? email,
+                                             string? phone,
+                                             CancellationToken cancellationToken,
+                                             [FromServices] DataContext dataContext)
     {
         if (email == null && phone == null)
         {
-            return BadRequest(new ErrorModel($"{nameof(email)} и {nameof(phone)} не заполнены"));
+            throw new RestException($"{nameof(email)} и {nameof(phone)} не заполнены", HttpStatusCode.BadRequest);
         }
 
         if (email != null && phone != null)
         {
-            return BadRequest(new ErrorModel($"Должен быть заполнен один из {nameof(email)} и {nameof(phone)}"));
+            throw new RestException($"Должен быть заполнен один из {nameof(email)} и {nameof(phone)}", HttpStatusCode.BadRequest);
         }
 
         var communicationType = GetCommunicationType(email, phone);
@@ -55,7 +55,7 @@ public class AuthController : ControllerBase
         {
             Code = UniversalCode,
         };
-        var communication = dataContext.Communications.FirstOrDefault(selector) ?? new Communication
+        var communication = await dataContext.Communications.FirstOrDefaultAsync(selector, cancellationToken) ?? new Communication
         {
             Value = value!,
             Type = communicationType,
@@ -72,27 +72,27 @@ public class AuthController : ControllerBase
         dataContext.Users.Add(user);
 
         await dataContext.SaveChangesAsync(cancellationToken);
-        return Ok(verification.Id);
+        return verification.Id;
     }
 
     [HttpPost, Route("/fast-registration/confirm")]
-    public async Task<ActionResult> ConfirmFastRegistration(Guid id,
-                                                            string code,
-                                                            CancellationToken cancellationToken,
-                                                            [FromServices] DataContext dataContext)
+    public async Task ConfirmFastRegistration(Guid id,
+                                              string code,
+                                              CancellationToken cancellationToken,
+                                              [FromServices] DataContext dataContext)
     {
-        var verification = dataContext.Verifications
-                                      .Include(x => x.Communication)
-                                      .ThenInclude(x => x.User)
-                                      .FirstOrDefault(x => x.Id == id);
+        var verification = await dataContext.Verifications
+                                            .Include(x => x.Communication)
+                                            .ThenInclude(x => x.User)
+                                            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         if (verification == null)
         {
-            return NotFound("Неизвестно кого авторизовывать");
+            throw new RestException("Неизвестно кого авторизовывать", HttpStatusCode.NotFound);
         }
 
         if (verification.Code != code)
         {
-            return Forbid("Введенный код неверный");
+            throw new RestException("Введенный код неверный", HttpStatusCode.Forbidden);
         }
 
         var claims = new List<Claim> { new(ClaimsIdentity.DefaultNameClaimType, verification.Communication.User.Id.ToString()) };
@@ -101,7 +101,6 @@ public class AuthController : ControllerBase
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
         await dataContext.SaveChangesAsync(cancellationToken);
-        return Ok();
     }
 
     private CommunicationType GetCommunicationType(string? email,
