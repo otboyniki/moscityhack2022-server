@@ -25,21 +25,11 @@ public class Startup
 
         services.AddDbContext<DataContext>((ctx, options) =>
             options.UseNpgsql(ctx.GetRequiredService<IConfiguration>()
-                                 .GetConnectionString("DefaultConnection"))
+                                 .GetConnectionString("DefaultConnection"),
+                              b => b.UseNetTopologySuite())
                    .UseLoggerFactory(ctx.GetRequiredService<ILoggerFactory>())
                    .EnableDetailedErrors()
                    .EnableSensitiveDataLogging());
-
-        services.AddIdentity<User, Role>(o =>
-                {
-                    o.Password.RequireDigit = false;
-                    o.Password.RequireLowercase = false;
-                    o.Password.RequireUppercase = false;
-                    o.Password.RequireNonAlphanumeric = false;
-                    o.Password.RequiredLength = 4;
-                })
-                .AddEntityFrameworkStores<DataContext>()
-                .AddDefaultTokenProviders();
 
         services.AddSwaggerGen();
         services.AddHttpLogging(options =>
@@ -95,6 +85,5 @@ public class Startup
     private void InitializeDatabase(IServiceProvider serviceProvider)
     {
         Seeder.Migrate(serviceProvider);
-        Seeder.Seed(serviceProvider).Wait();
     }
 }

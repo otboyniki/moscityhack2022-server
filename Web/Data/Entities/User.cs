@@ -19,6 +19,6 @@ public class User : IdentityUser<Guid>, IEntity, IHasTimestamps
     public virtual ICollection<Communication> Communications { get; set; } = new List<Communication>();
     public virtual ICollection<Participation> Participants { get; set; } = new List<Participation>();
 
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

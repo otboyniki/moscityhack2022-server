@@ -10,7 +10,9 @@ namespace Web.Data;
 
 public class DataContext : IdentityDbContext<User, Role, Guid>
 {
-    public DbSet<Test> Tests { get; set; }
+    public DbSet<Communication> Communications { get; set; }
+    public DbSet<Verification> Verifications { get; set; }
+    public DbSet<User> Users { get; set; }
 
     public DataContext(DbContextOptions options) : base(options) =>
         this.UseTimestamps();
@@ -18,7 +20,10 @@ public class DataContext : IdentityDbContext<User, Role, Guid>
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder) =>
         configurationBuilder.Properties<Enum>(x => x.HaveConversion<string>());
 
-    protected override void OnModelCreating(ModelBuilder builder) =>
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly())
                .HasPostgresExtension("postgis");
+    }
 }
