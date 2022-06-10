@@ -3,6 +3,9 @@ using Web.Data.Interfaces;
 
 namespace Web.Data.Entities;
 
+/// <summary>
+///     Организация
+/// </summary>
 [Table("Companies")]
 public class Company : IEntity, IHasTimestamps
 {

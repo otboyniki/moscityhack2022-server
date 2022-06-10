@@ -4,6 +4,9 @@ using Web.Data.Interfaces;
 
 namespace Web.Data.Entities;
 
+/// <summary>
+///     Мероприятие
+/// </summary>
 [Table("Events")]
 public class Event : IEntity, IHasTimestamps
 {
@@ -11,6 +14,8 @@ public class Event : IEntity, IHasTimestamps
 
     public Guid CompanyId { get; set; }
     public Company Company { get; set; } = null!;
+
+    public string Description { get; set; } = null!;
 
     public Point Location { get; set; } = null!;
     public string Kind { get; set; } = null!;
@@ -22,6 +27,8 @@ public class Event : IEntity, IHasTimestamps
     public int MaxVolunteersNumber { get; set; }
 
     public bool IsRegisteredVolunteersNeeded { get; set; }
+
+    public virtual ICollection<Participation> Participants { get; set; } = new List<Participation>();
 
     // todo: специальности
 
