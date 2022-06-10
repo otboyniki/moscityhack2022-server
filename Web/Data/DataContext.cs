@@ -7,7 +7,7 @@ using Web.Extensions;
 
 namespace Web.Data;
 
-public class DataContext : IdentityDbContext<User, Role, string>
+public class DataContext : IdentityDbContext<User, Role, Guid>
 {
     public DbSet<Test> Tests { get; set; }
 

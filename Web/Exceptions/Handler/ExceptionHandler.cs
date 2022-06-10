@@ -1,5 +1,4 @@
 using System.Net;
-using FluentValidation;
 
 namespace Web.Exceptions.Handler;
 
@@ -11,18 +10,12 @@ public class ExceptionHandler
 
         return exception switch
         {
-            ValidationException validationException => (HttpStatusCode.UnprocessableEntity,
-                                                        ValidationExceptionDto.From(validationException)),
-
             RestException restException => (restException.Code,
                                             new ExceptionDto
                                             {
                                                 Key = restException.Type,
                                                 Message = exception.Message,
                                             }),
-
-            UnauthorizedException unauthorizedException => (HttpStatusCode.Unauthorized,
-                                                            new ExceptionDto { Key = unauthorizedException.Error.ToString() }),
 
             NotImplementedException => (HttpStatusCode.NotImplemented,
                                         new ExceptionDto

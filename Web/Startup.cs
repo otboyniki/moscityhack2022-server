@@ -1,13 +1,9 @@
-using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Autofac;
-using MediatR;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Web.Behaviors;
 using Web.Data;
 using Web.Data.Entities;
 using Web.Extensions;
@@ -74,34 +70,6 @@ public class Startup
                         }
                     };
                 });
-    }
-
-    public void ConfigureContainer(ContainerBuilder builder)
-    {
-        builder
-            .RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
-            .AsClosedTypesOf(typeof(IRequestHandler<,>))
-            .AsImplementedInterfaces();
-
-        builder.RegisterGeneric(typeof(ValidationBehavior<,>))
-               .As(typeof(IPipelineBehavior<,>));
-
-        builder.Register<ServiceFactory>(context =>
-        {
-            var ctx = context.Resolve<IComponentContext>();
-            return t => ctx.Resolve(t);
-        });
-
-        builder
-            .RegisterType<Mediator>()
-            .As<IMediator>()
-            .InstancePerLifetimeScope();
-
-        builder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
-               .PublicOnly()
-               .AsSelf()
-               .AsImplementedInterfaces()
-               .InstancePerLifetimeScope();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

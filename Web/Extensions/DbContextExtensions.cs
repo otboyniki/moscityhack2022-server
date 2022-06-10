@@ -22,13 +22,6 @@ public static class DbContextExtensions
 
         foreach (var entry in context.ChangeTracker.Entries())
         {
-            if (entry.State == EntityState.Deleted &&
-                entry.Entity is ISoftDeletes { DeletedAt: null } softDeletesEntity)
-            {
-                entry.State = EntityState.Modified;
-                softDeletesEntity.DeletedAt = now;
-            }
-
             if (entry.Entity is IHasTimestamps entityWithTimestamps)
             {
                 switch (entry.State)
