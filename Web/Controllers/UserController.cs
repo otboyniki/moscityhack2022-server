@@ -1,4 +1,3 @@
-using System.Net.Mime;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +10,8 @@ using Web.ViewModels.User;
 
 namespace Web.Controllers;
 
-[Authorize]
 [Route("user")]
-[ApiController, AllowAnonymous]
-[Consumes(MediaTypeNames.Application.Json), Produces(MediaTypeNames.Application.Json)]
+[ApiController, Authorize]
 public class UserController : ControllerBase
 {
     [HttpGet, Route("profile")]
@@ -23,6 +20,7 @@ public class UserController : ControllerBase
     {
         var userId = Guid.Parse(HttpContext.User.Identity!.Name!);
         var user = dataContext.Users
+                              .Include(x => x.Avatar)
                               .Include(x => x.Communications)
                               .Include(x => x.UserInterests)
                               .ThenInclude(x => x.Interest)

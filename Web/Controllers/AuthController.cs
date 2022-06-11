@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Web.Data;
 using Web.Data.Entities;
-using Web.Data.Enums;
 using Web.Exceptions;
 using Web.ViewModels.Auth;
 
@@ -88,10 +87,4 @@ public class AuthController : ControllerBase
 
         await dataContext.SaveChangesAsync(cancellationToken);
     }
-
-    private CommunicationType GetCommunicationType(string? email,
-                                                   string? phone) =>
-        email != null
-            ? CommunicationType.Email
-            : CommunicationType.Phone;
 }
