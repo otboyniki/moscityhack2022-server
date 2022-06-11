@@ -52,19 +52,22 @@ public class HistoryController : ControllerBase
     {
         var history = dataContext.Histories
                                  .Include(x => x.Company)
-                                 .Include(x => x.HistoryComments)
-                                 .ThenInclude(x => x.HistoryCommentScores)
-                                 .Include(x => x.HistoryComments)
+                                 .Include(x => x.Comments)
+                                 .ThenInclude(x => x.ReviewScores)
+                                 .Include(x => x.Comments)
                                  .ThenInclude(x => x.User)
                                  .ThenInclude(x => x.Avatar)
                                  .Include(x => x.HistoryScores)
+                                 .Include(x => x.HistoryViews)
                                  .FirstOrDefault(x => x.Id == request.Id);
         if (history == null)
         {
             throw new RestException("История не найдена", HttpStatusCode.NotFound);
         }
 
-        var userId = HttpContext.User.GetUserId();
+        var userId = HttpContext.User.GetUserId()!.Value;
+        history.HistoryViews.Add(new HistoryView { UserId = userId });
+
         return new HistoryDetailResponse
         {
             CompanyName = history.Company.Title,
@@ -73,13 +76,13 @@ public class HistoryController : ControllerBase
             IsPositiveScore = history.HistoryScores.FirstOrDefault(x => x.UserId == userId)?.Positive,
             Title = history.Title,
             Description = history.Description,
-            Comments = history.HistoryComments.Select(x => new HistoryCommentItem
+            Comments = history.Comments.Select(x => new HistoryCommentItem
             {
                 FullName = $"{x.User.FirstName} {x.User.LastName}",
                 Date = x.CreatedAt,
                 Text = x.Text,
-                Score = x.HistoryCommentScores.Sum(y => y.Positive ? 1 : -1),
-                IsPositiveScore = x.HistoryCommentScores.FirstOrDefault(y => y.UserId == userId)?.Positive,
+                Score = x.ReviewScores.Sum(y => y.Positive ? 1 : -1),
+                IsPositiveScore = x.ReviewScores.FirstOrDefault(y => y.Review.UserId == userId)?.Positive,
                 AvatarPath = x.User.Avatar == null ? null : $"file/{x.User.Avatar.Path}",
             }).ToArray(),
         };
@@ -137,7 +140,7 @@ public class HistoryController : ControllerBase
             Title = history.Title,
             ShortDescription = history.ShortDescription,
             Score = history.HistoryScores.Sum(x => x.Positive ? 1 : -1),
-            CommentsCount = history.HistoryComments.Count,
+            CommentsCount = history.Comments.Count,
             PreviewId = history.PreviewId,
             Format = history.Format,
             Activities = history.HistoryInterests.Select(x => new HistoryItemsActivityItem

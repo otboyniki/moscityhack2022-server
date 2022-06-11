@@ -17,7 +17,7 @@ public class History : IEntity, IHasTimestamps
     public Guid? PreviewId { get; set; }
     public File? Preview { get; set; }
 
-    public ICollection<HistoryComment> HistoryComments { get; set; } = new List<HistoryComment>();
+    public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     public ICollection<HistoryScore> HistoryScores { get; set; } = new List<HistoryScore>();
     public ICollection<HistoryView> HistoryViews { get; set; } = new List<HistoryView>();
     public ICollection<HistoryActivity> HistoryInterests { get; set; } = new List<HistoryActivity>();
