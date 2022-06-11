@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Web.Data;
 using Web.Data.Entities;
+using Web.Data.Enums;
 using Web.Exceptions;
 using Web.ViewModels.Auth;
 
@@ -21,10 +22,24 @@ public class AuthController : ControllerBase
 {
     private const string UniversalCode = "7373";
 
-    [HttpPost]
-    public Task SignIn(CancellationToken cancellationToken)
+    [HttpPost, Route("/sign-in")]
+    public async Task<Guid> SignIn(SignInRequest request,
+                                   [FromServices] DataContext dataContext,
+                                   CancellationToken cancellationToken)
     {
-        return Task.CompletedTask;
+        var selector = (Expression<Func<Communication, bool>>)(x => x.Type == request.Type && x.Value == request.Value);
+        var communication = await dataContext.Communications
+                                             .Include(x => x.Verifications)
+                                             .FirstOrDefaultAsync(selector, cancellationToken);
+        if (communication == null)
+        {
+            throw new RestException("Такой пользователь не существует", HttpStatusCode.NotFound);
+        }
+
+        var verification = AddVerification(communication, UniversalCode);
+
+        await dataContext.SaveChangesAsync(cancellationToken);
+        return verification.Id;
     }
 
     [HttpPost, Route("/fast-registration")]
@@ -33,18 +48,16 @@ public class AuthController : ControllerBase
                                              [FromServices] DataContext dataContext)
     {
         var selector = (Expression<Func<Communication, bool>>)(x => x.Type == request.Type && x.Value == request.Value);
-        var verification = new Verification
-        {
-            Code = UniversalCode,
-        };
+
         var communication = await dataContext.Communications
                                              .Include(x => x.User)
+                                             .Include(x => x.Verifications)
                                              .FirstOrDefaultAsync(selector, cancellationToken) ?? new Communication
         {
             Value = request.Value,
             Type = request.Type,
-            Verifications = new[] { verification },
         };
+        var verification = AddVerification(communication, UniversalCode);
 
         if (communication.User == null)
         {
@@ -80,11 +93,88 @@ public class AuthController : ControllerBase
             throw new RestException("Введенный код неверный", HttpStatusCode.Forbidden);
         }
 
-        var claims = new List<Claim> { new(ClaimsIdentity.DefaultNameClaimType, verification.Communication.User.Id.ToString()) };
+        var claims = new List<Claim> { new(ClaimsIdentity.DefaultNameClaimType, verification.Communication.User!.Id.ToString()) };
         var claimsIdentity = new ClaimsIdentity(claims, "ApplicationCookie", ClaimsIdentity.DefaultNameClaimType,
                                                 ClaimsIdentity.DefaultRoleClaimType);
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
         await dataContext.SaveChangesAsync(cancellationToken);
+    }
+
+    [HttpPost, Route("/registration/volunteer")]
+    public async Task<Guid> VolunteerUserRegistration(VolunteerUserRegistrationRequest request,
+                                                      CancellationToken cancellationToken,
+                                                      [FromServices] DataContext dataContext)
+    {
+        await CheckUserAsync(request.Email, dataContext, cancellationToken);
+
+        var (user, verification) = CreateUser<OrganizerUser>(UniversalCode, CommunicationType.Email, request.Email);
+        user.FirstName = request.FirstName;
+        user.LastName = request.LastName;
+        dataContext.Users.Add(user);
+
+        await dataContext.SaveChangesAsync(cancellationToken);
+        return verification.Id;
+    }
+
+    [HttpPost, Route("/registration/organizer")]
+    public async Task<Guid> OrganizerUserRegistration(OrganizerUserRegistrationRequest request,
+                                                      CancellationToken cancellationToken,
+                                                      [FromServices] DataContext dataContext)
+    {
+        await CheckUserAsync(request.Email, dataContext, cancellationToken);
+
+        var company = await dataContext.Companies
+                                       .FirstOrDefaultAsync(x => x.Title == request.CompanyName, cancellationToken) ??
+                      new Company
+                      {
+                          Title = request.CompanyName,
+                      };
+
+        var (user, verification) = CreateUser<OrganizerUser>(UniversalCode, CommunicationType.Email, request.Email);
+        user.FirstName = request.FirstName;
+        user.LastName = request.LastName;
+        user.Company = company;
+        dataContext.Users.Add(user);
+
+        await dataContext.SaveChangesAsync(cancellationToken);
+        return verification.Id;
+    }
+
+    private Verification AddVerification(Communication communication, string code)
+    {
+        var verification = new Verification { Code = code };
+        communication.Verifications.Add(verification);
+
+        return verification;
+    }
+
+    private async Task CheckUserAsync(string email, DataContext dataContext, CancellationToken cancellationToken)
+    {
+        var user = await dataContext.Users
+                                    .FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
+        if (user != null)
+        {
+            throw new RestException("Такой пользователь уже существует", HttpStatusCode.BadRequest);
+        }
+    }
+
+    private (TUser, Verification) CreateUser<TUser>(string code,
+                                                    CommunicationType communicationType,
+                                                    string communicationValue)
+        where TUser : User, new()
+    {
+        var communication = new Communication
+        {
+            Value = communicationValue,
+            Type = communicationType,
+        };
+        var verification = AddVerification(communication, code);
+        var user = new TUser
+        {
+            Communications = new[] { communication },
+        };
+
+        return (user, verification);
     }
 }

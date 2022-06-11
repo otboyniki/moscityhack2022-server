@@ -11,12 +11,14 @@ namespace Web.Data;
 public class DataContext : DbContext
 {
     public DbSet<Communication> Communications { get; set; }
+    public DbSet<Company> Companies { get; set; }
     public DbSet<File> Files { get; set; }
     public DbSet<Interest> Interests { get; set; }
     public DbSet<Verification> Verifications { get; set; }
     public DbSet<User> Users { get; set; }
 
-    public DataContext(DbContextOptions options) : base(options) =>
+    public DataContext(DbContextOptions options)
+        : base(options) =>
         this.UseTimestamps();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder) =>
