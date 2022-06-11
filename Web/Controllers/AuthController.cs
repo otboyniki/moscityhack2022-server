@@ -48,7 +48,7 @@ public class AuthController : ControllerBase
 
         if (communication.User == null)
         {
-            var user = new User
+            var user = new VolunteerUser
             {
                 FirstName = request.Name,
                 Communications = new[] { communication },

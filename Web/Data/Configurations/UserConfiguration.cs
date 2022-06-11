@@ -10,5 +10,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
     {
 //        builder.Property(x => x.Location)
 //               .HasColumnType("geography (point)");
+
+        builder.HasDiscriminator()
+               .HasValue<VolunteerUser>("VolunteerUser")
+               .HasValue<OrganizerUser>("OrganizerUser");
     }
 }

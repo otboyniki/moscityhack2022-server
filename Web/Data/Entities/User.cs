@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Identity;
-using NetTopologySuite.Geometries;
 using Web.Data.Interfaces;
 
 namespace Web.Data.Entities;
 
-public class User : IdentityUser<Guid>, IEntity, IHasTimestamps
+public abstract class User : IdentityUser<Guid>, IEntity, IHasTimestamps
 {
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
@@ -23,3 +22,7 @@ public class User : IdentityUser<Guid>, IEntity, IHasTimestamps
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
+
+public class VolunteerUser : User { }
+
+public class OrganizerUser : User { }
