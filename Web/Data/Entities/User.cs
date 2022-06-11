@@ -15,10 +15,11 @@ public abstract class User : IdentityUser<Guid>, IEntity, IHasTimestamps
     public Address? Address { get; set; }
 
     public Guid? AvatarId { get; set; }
-    public File? Avatar { get; set; } = null!;
+    public File? Avatar { get; set; }
 
-    public virtual ICollection<Communication> Communications { get; set; } = new List<Communication>();
-    public virtual ICollection<UserActivity> UserInterests { get; set; } = new List<UserActivity>();
+    public ICollection<Communication> Communications { get; set; } = new List<Communication>();
+    public ICollection<UserActivity> UserActivities { get; set; } = new List<UserActivity>();
+    public ICollection<HistoryView> HistoryViews { get; set; } = new List<HistoryView>();
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

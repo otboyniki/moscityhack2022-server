@@ -20,7 +20,7 @@ public class History : IEntity, IHasTimestamps
     public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     public ICollection<HistoryScore> HistoryScores { get; set; } = new List<HistoryScore>();
     public ICollection<HistoryView> HistoryViews { get; set; } = new List<HistoryView>();
-    public ICollection<HistoryActivity> HistoryInterests { get; set; } = new List<HistoryActivity>();
+    public ICollection<HistoryActivity> HistoryActivities { get; set; } = new List<HistoryActivity>();
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

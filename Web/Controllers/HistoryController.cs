@@ -23,32 +23,24 @@ public class HistoryController : ControllerBase
         HistoryItemsValidate(request);
         var filteredHistoryItems = await GetFilteredHistoryItemsAsync(request, dataContext);
 
-        var response = new HistoryItemsResponse
-        {
-            ActivityFilters = dataContext.Activities.Select(x => new ActivityFilterItem
-            {
-                Id = x.Id,
-                Title = x.Title,
-            }).ToArray(),
-        };
-
+        var response = new HistoryItemsResponse();
         if (request.Filters.Skip == 0)
         {
-            response.BigItem = await filteredHistoryItems.Select(x => CreateHistoryItem(x)).FirstOrDefaultAsync(cancellationToken);
-            response.Items = await filteredHistoryItems.Skip(1).Select(x => CreateHistoryItem(x)).ToArrayAsync(cancellationToken);
+            response.BigItem = await filteredHistoryItems.Select(GetHistoryItemSelector()).FirstOrDefaultAsync(cancellationToken);
+            response.Items = await filteredHistoryItems.Skip(1).Select(GetHistoryItemSelector()).ToArrayAsync(cancellationToken);
         }
         else
         {
-            response.Items = await filteredHistoryItems.Select(x => CreateHistoryItem(x)).ToArrayAsync(cancellationToken);
+            response.Items = await filteredHistoryItems.Select(GetHistoryItemSelector()).ToArrayAsync(cancellationToken);
         }
 
         return response;
     }
 
-    [HttpGet, Route("detail")]
-    public HistoryDetailResponse DetailHistory([FromQuery] HistoryDetailRequest request,
-                                               [FromServices] DataContext dataContext,
-                                               CancellationToken cancellationToken)
+    [HttpGet, Route("{id}")]
+    public async Task<HistoryDetailResponse> DetailHistory([FromRoute] Guid id,
+                                                           [FromServices] DataContext dataContext,
+                                                           CancellationToken cancellationToken)
     {
         var history = dataContext.Histories
                                  .Include(x => x.Company)
@@ -59,14 +51,18 @@ public class HistoryController : ControllerBase
                                  .ThenInclude(x => x.Avatar)
                                  .Include(x => x.HistoryScores)
                                  .Include(x => x.HistoryViews)
-                                 .FirstOrDefault(x => x.Id == request.Id);
+                                 .FirstOrDefault(x => x.Id == id);
         if (history == null)
         {
             throw new RestException("История не найдена", HttpStatusCode.NotFound);
         }
 
         var userId = HttpContext.User.GetUserId()!.Value;
-        history.HistoryViews.Add(new HistoryView { UserId = userId });
+        if (history.HistoryViews.All(x => x.UserId != userId))
+        {
+            history.HistoryViews.Add(new HistoryView { UserId = userId });
+            await dataContext.SaveChangesAsync(cancellationToken);
+        }
 
         return new HistoryDetailResponse
         {
@@ -88,24 +84,7 @@ public class HistoryController : ControllerBase
         };
     }
 
-    [HttpGet, Route("new"), Authorize(Roles = nameof(OrganizerUser))]
-    public async Task<InfoNewHistoryResponse> InfoNewHistory([FromQuery] InfoNewHistoryRequest request,
-                                                             [FromServices] DataContext dataContext,
-                                                             CancellationToken cancellationToken)
-    {
-        var activityItems = await dataContext.Activities.Select(x => new InfoNewHistoryActivityItem
-        {
-            Id = x.Id,
-            Title = x.Title,
-        }).ToArrayAsync(cancellationToken);
-
-        return new InfoNewHistoryResponse
-        {
-            Activities = activityItems,
-        };
-    }
-
-    [HttpPost, Route("new"), Authorize(Roles = nameof(OrganizerUser))]
+    [HttpPost, Route(""), Authorize(Roles = nameof(OrganizerUser))]
     public async Task<HistoryNewResponse> AddHistory(HistoryNewRequest request,
                                                      [FromServices] DataContext dataContext,
                                                      CancellationToken cancellationToken)
@@ -122,7 +101,7 @@ public class HistoryController : ControllerBase
             ShortDescription = request.ShortDescription,
             Description = request.Description,
             Format = request.Format,
-            HistoryInterests = request.ActivityIds.Select(x => new HistoryActivity { ActivityId = x }).ToArray(),
+            HistoryActivities = request.ActivityIds.Select(x => new HistoryActivity { ActivityId = x }).ToArray(),
             PreviewId = request.PreviewId,
         };
 
@@ -132,21 +111,23 @@ public class HistoryController : ControllerBase
         return new HistoryNewResponse();
     }
 
-    private static HistoryItem CreateHistoryItem(History history)
+    private static Expression<Func<History, HistoryItem>> GetHistoryItemSelector()
     {
-        return new HistoryItem
+        return history => new HistoryItem
         {
+            Id = history.Id,
             CompanyName = history.Company.Title,
             Title = history.Title,
             ShortDescription = history.ShortDescription,
             Score = history.HistoryScores.Sum(x => x.Positive ? 1 : -1),
             CommentsCount = history.Comments.Count,
+            ViewsCount = history.HistoryViews.Count,
             PreviewId = history.PreviewId,
             Format = history.Format,
-            Activities = history.HistoryInterests.Select(x => new HistoryItemsActivityItem
+            Activities = history.HistoryActivities.Select(x => new HistoryItemsActivityItem
             {
                 Title = x.Activity.Title,
-                IconPath = $"file/{x.Activity.Icon.Path}",
+                IconId = x.Activity.Icon == null ? null : x.Activity.Icon.Id,
             }).ToArray(),
             Date = history.CreatedAt,
         };
@@ -188,7 +169,7 @@ public class HistoryController : ControllerBase
 
         if (request.Filters.InterestIds.Any())
         {
-            historyQuery = historyQuery.Where(x => x.HistoryInterests.Any(y => request.Filters.InterestIds.Contains(y.ActivityId)));
+            historyQuery = historyQuery.Where(x => x.HistoryActivities.Any(y => request.Filters.InterestIds.Contains(y.ActivityId)));
         }
 
         historyQuery = historyQuery.Skip(request.Filters.Skip)

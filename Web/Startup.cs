@@ -53,7 +53,7 @@ public class Startup
                     {
                         context.Response.StatusCode = 403;
                         return Task.CompletedTask;
-                    }
+                    },
                 });
         services.AddAuthorization();
 

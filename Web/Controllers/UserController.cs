@@ -22,12 +22,12 @@ public class UserController : ControllerBase
         var user = dataContext.Users
                               .Include(x => x.Avatar)
                               .Include(x => x.Communications)
-                              .Include(x => x.UserInterests)
+                              .Include(x => x.UserActivities)
                               .ThenInclude(x => x.Activity)
                               .First(x => x.Id == userId);
 
         var allInterests = dataContext.Activities.ToArray();
-        var userInterestIds = user.UserInterests.Select(x => x.Activity.Id).ToArray();
+        var userInterestIds = user.UserActivities.Select(x => x.Activity.Id).ToArray();
 
         return new ProfileResponse
         {
@@ -37,7 +37,7 @@ public class UserController : ControllerBase
             Birthday = user.Birthday,
             Email = user.Communications.FirstOrDefault(x => x.Type == CommunicationType.Email)?.Value,
             Phone = user.Communications.FirstOrDefault(x => x.Type == CommunicationType.Phone)?.Value,
-            AvatarPath = user.Avatar == null ? null : $"file/{user.Avatar.Path}",
+            AvatarId = user.Avatar?.Id,
             Interests = allInterests.Select(x => new InterestModel
             {
                 Id = x.Id,
@@ -55,7 +55,7 @@ public class UserController : ControllerBase
         var userId = User.GetUserId();
         var user = dataContext.Users
                               .Include(x => x.Communications)
-                              .Include(x => x.UserInterests)
+                              .Include(x => x.UserActivities)
                               .ThenInclude(x => x.Activity)
                               .First(x => x.Id == userId);
 
@@ -67,11 +67,11 @@ public class UserController : ControllerBase
         ChangeCommunication(user.Communications, CommunicationType.Email, model.Email);
         ChangeCommunication(user.Communications, CommunicationType.Phone, model.Phone);
 
-        var userInterests = user.UserInterests.Select(x => x.ActivityId).ToArray();
+        var userInterests = user.UserActivities.Select(x => x.ActivityId).ToArray();
         var toAdd = model.InterestIds.Except(userInterests).ToList();
         var toRemove = userInterests.Except(model.InterestIds).ToList();
-        toAdd.ForEach(x => user.UserInterests.Add(new UserActivity { ActivityId = x }));
-        toRemove.ForEach(x => user.UserInterests.Remove(user.UserInterests.First(y => y.ActivityId == x)));
+        toAdd.ForEach(x => user.UserActivities.Add(new UserActivity { ActivityId = x }));
+        toRemove.ForEach(x => user.UserActivities.Remove(user.UserActivities.First(y => y.ActivityId == x)));
 
         await dataContext.SaveChangesAsync(cancellationToken);
     }

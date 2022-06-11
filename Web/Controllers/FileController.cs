@@ -55,7 +55,7 @@ public class FileController : ControllerBase
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    [HttpGet]
+    [HttpGet, AllowAnonymous]
     [Route("{fileId:guid}")]
     public async Task<FileStreamResult> DownloadFile([FromRoute] Guid fileId, CancellationToken cancellationToken)
     {

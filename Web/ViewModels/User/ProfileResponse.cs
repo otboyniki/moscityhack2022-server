@@ -8,7 +8,7 @@ public class ProfileResponse
     public DateTime? Birthday { get; set; }
     public string? Email { get; set; }
     public string? Phone { get; set; }
-    public string? AvatarPath { get; set; }
+    public Guid? AvatarId { get; set; }
     public ICollection<InterestModel> Interests { get; set; } = new List<InterestModel>();
 }
 
