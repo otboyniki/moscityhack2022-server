@@ -8,7 +8,7 @@ using Web.Extensions;
 
 namespace Web.Data;
 
-public class DataContext : IdentityDbContext<User, Role, Guid>
+public class DataContext : DbContext
 {
     public DbSet<Communication> Communications { get; set; }
     public DbSet<Verification> Verifications { get; set; }

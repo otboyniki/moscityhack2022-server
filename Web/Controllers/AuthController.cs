@@ -11,6 +11,7 @@ using Web.Data;
 using Web.Data.Entities;
 using Web.Data.Enums;
 using Web.Exceptions;
+using Web.ViewModels.Auth;
 
 namespace Web.Controllers;
 
@@ -28,41 +29,20 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost, Route("/fast-registration")]
-    public async Task<Guid> FastRegistration(string? email,
-                                             string? phone,
+    public async Task<Guid> FastRegistration(FastRegistrationConfirmModel model,
                                              CancellationToken cancellationToken,
                                              [FromServices] DataContext dataContext)
     {
-        if (email == null && phone == null)
-        {
-            throw new RestException($"{nameof(email)} и {nameof(phone)} не заполнены", HttpStatusCode.BadRequest);
-        }
-
-        if (email != null && phone != null)
-        {
-            throw new RestException($"Должен быть заполнен один из {nameof(email)} и {nameof(phone)}", HttpStatusCode.BadRequest);
-        }
-
-        var communicationType = GetCommunicationType(email, phone);
-        var value = communicationType switch
-        {
-            CommunicationType.Email => email,
-            CommunicationType.Phone => phone,
-            _ => throw new ArgumentOutOfRangeException(),
-        };
-        var selector = (Expression<Func<Communication, bool>>)(x => x.Type == communicationType && x.Value == value);
+        var selector = (Expression<Func<Communication, bool>>)(x => x.Type == model.Type && x.Value == model.Value);
         var verification = new Verification
         {
             Code = UniversalCode,
         };
         var communication = await dataContext.Communications.FirstOrDefaultAsync(selector, cancellationToken) ?? new Communication
         {
-            Value = value!,
-            Type = communicationType,
-            Verifications = new[]
-            {
-                verification,
-            },
+            Value = model.Value,
+            Type = model.Type,
+            Verifications = new[] { verification },
         };
 
         var user = new User

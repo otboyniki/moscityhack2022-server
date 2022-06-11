@@ -2,6 +2,6 @@ namespace Web.Data.Enums;
 
 public enum CommunicationType
 {
-    Email,
-    Phone
+    Email = 1,
+    Phone = 2,
 }
