@@ -13,7 +13,7 @@ public class Communication : IEntity, IHasTimestamps
     public string Value { get; set; } = null!;
 
     public Guid UserId { get; set; }
-    public User User { get; set; } = null!;
+    public User? User { get; set; } = null!;
 
     public virtual ICollection<Verification> Verifications { get; set; } = new List<Verification>();
 

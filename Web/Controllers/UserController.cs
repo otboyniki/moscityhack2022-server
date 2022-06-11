@@ -1,12 +1,11 @@
 using System.Net.Mime;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Web.Data;
 using Web.Data.Entities;
 using Web.Data.Enums;
+using Web.Extensions;
 using Web.Services;
 using Web.ViewModels.User;
 
@@ -19,8 +18,8 @@ namespace Web.Controllers;
 public class UserController : ControllerBase
 {
     [HttpGet, Route("profile")]
-    public async Task<ProfileResponseModel> GetProfile(CancellationToken cancellationToken,
-                                                       [FromServices] DataContext dataContext)
+    public async Task<ProfileResponse> GetProfile(CancellationToken cancellationToken,
+                                                  [FromServices] DataContext dataContext)
     {
         var userId = Guid.Parse(HttpContext.User.Identity!.Name!);
         var user = dataContext.Users
@@ -32,7 +31,7 @@ public class UserController : ControllerBase
         var allInterests = dataContext.Interests.ToArray();
         var userInterestIds = user.UserInterests.Select(x => x.Interest.Id).ToArray();
 
-        return new ProfileResponseModel
+        return new ProfileResponse
         {
             FirstName = user.FirstName,
             LastName = user.LastName,
@@ -40,7 +39,7 @@ public class UserController : ControllerBase
             Birthday = user.Birthday,
             Email = user.Communications.FirstOrDefault(x => x.Type == CommunicationType.Email)?.Value,
             Phone = user.Communications.FirstOrDefault(x => x.Type == CommunicationType.Phone)?.Value,
-            AvatarPath = user.Avatar?.Path,
+            AvatarPath = user.Avatar == null ? null : $"file/{user.Avatar.Path}",
             Interests = allInterests.Select(x => new InterestModel
             {
                 Id = x.Id,
@@ -51,30 +50,16 @@ public class UserController : ControllerBase
     }
 
     [HttpPost, Route("profile")]
-    public async Task SaveProfile(ProfileRequestModel model,
-                                                        CancellationToken cancellationToken,
-                                                        [FromServices] DataContext dataContext)
+    public async Task SaveProfile(ProfileRequest model,
+                                  CancellationToken cancellationToken,
+                                  [FromServices] DataContext dataContext)
     {
-        var fileService = new FileService();
-
-        var userId = Guid.Parse(HttpContext.User.Identity!.Name!);
+        var userId = User.GetUserId();
         var user = dataContext.Users
                               .Include(x => x.Communications)
                               .Include(x => x.UserInterests)
                               .ThenInclude(x => x.Interest)
                               .First(x => x.Id == userId);
-
-        if (model.Avatar != null)
-        {
-            var userFile = await fileService.CreateFileAsync("users", model.Avatar, cancellationToken);
-            if (user.AvatarId != null)
-            {
-                fileService.DeleteFile(user.Avatar!);
-                dataContext.Files.Remove(user.Avatar!);
-            }
-
-            user.Avatar = userFile;
-        }
 
         user.FirstName = model.FirstName;
         user.LastName = model.LastName;
@@ -91,6 +76,35 @@ public class UserController : ControllerBase
         toRemove.ForEach(x => user.UserInterests.Remove(user.UserInterests.First(y => y.InterestId == x)));
 
         await dataContext.SaveChangesAsync(cancellationToken);
+    }
+
+    [Authorize]
+    [HttpPut("avatar")]
+    public async Task<object> ChangeAvatar([FromForm] ChangeAvatarRequest request,
+                                           [FromServices] DataContext dataContext,
+                                           CancellationToken cancellationToken)
+    {
+        var fileService = new FileService();
+
+        var userId = User.GetUserId();
+        var user = await dataContext.Users
+                                    .Include(x => x.Avatar)
+                                    .SingleAsync(x => x.Id == userId, cancellationToken);
+
+        var userFile = await fileService.CreateFileAsync("users", request.File, cancellationToken);
+        if (user.AvatarId != null)
+        {
+            fileService.DeleteFile(user.Avatar!);
+            dataContext.Files.Remove(user.Avatar!);
+        }
+
+        user.Avatar = userFile;
+        await dataContext.SaveChangesAsync(cancellationToken);
+
+        return new
+        {
+            Path = $"file/{user.Avatar.Path}",
+        };
     }
 
     private void ChangeCommunication(ICollection<Communication> communications,

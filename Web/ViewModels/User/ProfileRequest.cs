@@ -1,6 +1,6 @@
 namespace Web.ViewModels.User;
 
-public class ProfileRequestModel
+public class ProfileRequest
 {
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
@@ -8,6 +8,5 @@ public class ProfileRequestModel
     public DateTime? Birthday { get; set; }
     public string? Email { get; set; }
     public string? Phone { get; set; }
-    public IFormFile? Avatar { get; set; }
     public ICollection<Guid> InterestIds { get; set; } = new List<Guid>();
 }

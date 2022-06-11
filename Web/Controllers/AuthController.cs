@@ -29,27 +29,33 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost, Route("/fast-registration")]
-    public async Task<Guid> FastRegistration(FastRegistrationRequestModel requestModel,
+    public async Task<Guid> FastRegistration(FastRegistrationRequest request,
                                              CancellationToken cancellationToken,
                                              [FromServices] DataContext dataContext)
     {
-        var selector = (Expression<Func<Communication, bool>>)(x => x.Type == requestModel.Type && x.Value == requestModel.Value);
+        var selector = (Expression<Func<Communication, bool>>)(x => x.Type == request.Type && x.Value == request.Value);
         var verification = new Verification
         {
             Code = UniversalCode,
         };
-        var communication = await dataContext.Communications.FirstOrDefaultAsync(selector, cancellationToken) ?? new Communication
+        var communication = await dataContext.Communications
+                                             .Include(x => x.User)
+                                             .FirstOrDefaultAsync(selector, cancellationToken) ?? new Communication
         {
-            Value = requestModel.Value,
-            Type = requestModel.Type,
+            Value = request.Value,
+            Type = request.Type,
             Verifications = new[] { verification },
         };
 
-        var user = new User
+        if (communication.User == null)
         {
-            Communications = new[] { communication },
-        };
-        dataContext.Users.Add(user);
+            var user = new User
+            {
+                FirstName = request.Name,
+                Communications = new[] { communication },
+            };
+            dataContext.Users.Add(user);
+        }
 
         await dataContext.SaveChangesAsync(cancellationToken);
         return verification.Id;

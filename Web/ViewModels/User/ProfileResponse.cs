@@ -1,6 +1,6 @@
 namespace Web.ViewModels.User;
 
-public class ProfileResponseModel
+public class ProfileResponse
 {
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
