@@ -27,7 +27,7 @@ public class AuthController : ControllerBase
                                    [FromServices] DataContext dataContext,
                                    CancellationToken cancellationToken)
     {
-        var selector = (Expression<Func<Communication, bool>>)(x => x.Type == request.Type && x.Value == request.Value);
+        var selector = (Expression<Func<Communication, bool>>)(x => x.Type == request.Communication.Type && x.Value == request.Communication.Value);
         var communication = await dataContext.Communications
                                              .Include(x => x.Verifications)
                                              .FirstOrDefaultAsync(selector, cancellationToken);
@@ -47,15 +47,15 @@ public class AuthController : ControllerBase
                                              CancellationToken cancellationToken,
                                              [FromServices] DataContext dataContext)
     {
-        var selector = (Expression<Func<Communication, bool>>)(x => x.Type == request.Type && x.Value == request.Value);
+        var selector = (Expression<Func<Communication, bool>>)(x => x.Type == request.Communication.Type && x.Value == request.Communication.Value);
 
         var communication = await dataContext.Communications
                                              .Include(x => x.User)
                                              .Include(x => x.Verifications)
                                              .FirstOrDefaultAsync(selector, cancellationToken) ?? new Communication
         {
-            Value = request.Value,
-            Type = request.Type,
+            Value = request.Communication.Value,
+            Type = request.Communication.Type,
         };
         var verification = AddVerification(communication, UniversalCode);
 
@@ -63,7 +63,7 @@ public class AuthController : ControllerBase
         {
             var user = new VolunteerUser
             {
-                FirstName = request.Name,
+                FirstName = request.FirstName,
                 Communications = new[] { communication },
             };
             dataContext.Users.Add(user);
@@ -108,7 +108,7 @@ public class AuthController : ControllerBase
     {
         await CheckUserAsync(request.Email, dataContext, cancellationToken);
 
-        var (user, verification) = CreateUser<OrganizerUser>(UniversalCode, CommunicationType.Email, request.Email);
+        var (user, verification) = CreateUser<VolunteerUser>(UniversalCode, CommunicationType.Email, request.Email);
         user.FirstName = request.FirstName;
         user.LastName = request.LastName;
         dataContext.Users.Add(user);
