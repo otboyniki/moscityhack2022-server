@@ -23,11 +23,11 @@ public class UserController : ControllerBase
                               .Include(x => x.Avatar)
                               .Include(x => x.Communications)
                               .Include(x => x.UserInterests)
-                              .ThenInclude(x => x.Interest)
+                              .ThenInclude(x => x.Activity)
                               .First(x => x.Id == userId);
 
-        var allInterests = dataContext.Interests.ToArray();
-        var userInterestIds = user.UserInterests.Select(x => x.Interest.Id).ToArray();
+        var allInterests = dataContext.Activities.ToArray();
+        var userInterestIds = user.UserInterests.Select(x => x.Activity.Id).ToArray();
 
         return new ProfileResponse
         {
@@ -56,7 +56,7 @@ public class UserController : ControllerBase
         var user = dataContext.Users
                               .Include(x => x.Communications)
                               .Include(x => x.UserInterests)
-                              .ThenInclude(x => x.Interest)
+                              .ThenInclude(x => x.Activity)
                               .First(x => x.Id == userId);
 
         user.FirstName = model.FirstName;
@@ -67,11 +67,11 @@ public class UserController : ControllerBase
         ChangeCommunication(user.Communications, CommunicationType.Email, model.Email);
         ChangeCommunication(user.Communications, CommunicationType.Phone, model.Phone);
 
-        var userInterests = user.UserInterests.Select(x => x.InterestId).ToArray();
+        var userInterests = user.UserInterests.Select(x => x.ActivityId).ToArray();
         var toAdd = model.InterestIds.Except(userInterests).ToList();
         var toRemove = userInterests.Except(model.InterestIds).ToList();
-        toAdd.ForEach(x => user.UserInterests.Add(new UserInterest { InterestId = x }));
-        toRemove.ForEach(x => user.UserInterests.Remove(user.UserInterests.First(y => y.InterestId == x)));
+        toAdd.ForEach(x => user.UserInterests.Add(new UserActivity { ActivityId = x }));
+        toRemove.ForEach(x => user.UserInterests.Remove(user.UserInterests.First(y => y.ActivityId == x)));
 
         await dataContext.SaveChangesAsync(cancellationToken);
     }

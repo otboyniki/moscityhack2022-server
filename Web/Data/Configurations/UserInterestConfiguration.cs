@@ -4,10 +4,10 @@ using Web.Data.Entities;
 
 namespace Web.Data.Configurations;
 
-public class UserInterestConfiguration : IEntityTypeConfiguration<UserInterest>
+public class UserInterestConfiguration : IEntityTypeConfiguration<UserActivity>
 {
-    public void Configure(EntityTypeBuilder<UserInterest> builder)
+    public void Configure(EntityTypeBuilder<UserActivity> builder)
     {
-        builder.HasKey(x => new{x.UserId, x.InterestId});
+        builder.HasKey(x => new { x.UserId, InterestId = x.ActivityId });
     }
 }

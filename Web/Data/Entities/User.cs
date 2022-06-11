@@ -18,7 +18,7 @@ public abstract class User : IdentityUser<Guid>, IEntity, IHasTimestamps
     public File Avatar { get; set; } = null!;
 
     public virtual ICollection<Communication> Communications { get; set; } = new List<Communication>();
-    public virtual ICollection<UserInterest> UserInterests { get; set; } = new List<UserInterest>();
+    public virtual ICollection<UserActivity> UserInterests { get; set; } = new List<UserActivity>();
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
