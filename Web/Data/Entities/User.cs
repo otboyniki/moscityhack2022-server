@@ -13,11 +13,12 @@ public class User : IdentityUser<Guid>, IEntity, IHasTimestamps
 
 //    public Point? Location { get; set; }
 
-    public Guid? CompanyId { get; set; }
-    public Company Company { get; set; } = null!;
+    public Guid? AvatarId { get; set; }
+    public File? Avatar { get; set; } = null!;
 
     public virtual ICollection<Communication> Communications { get; set; } = new List<Communication>();
     public virtual ICollection<Participation> Participants { get; set; } = new List<Participation>();
+    public virtual ICollection<UserInterest> UserInterests { get; set; } = new List<UserInterest>();
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

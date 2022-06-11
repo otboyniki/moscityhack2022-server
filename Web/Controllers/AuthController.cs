@@ -29,19 +29,19 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost, Route("/fast-registration")]
-    public async Task<Guid> FastRegistration(FastRegistrationConfirmModel model,
+    public async Task<Guid> FastRegistration(FastRegistrationRequestModel requestModel,
                                              CancellationToken cancellationToken,
                                              [FromServices] DataContext dataContext)
     {
-        var selector = (Expression<Func<Communication, bool>>)(x => x.Type == model.Type && x.Value == model.Value);
+        var selector = (Expression<Func<Communication, bool>>)(x => x.Type == requestModel.Type && x.Value == requestModel.Value);
         var verification = new Verification
         {
             Code = UniversalCode,
         };
         var communication = await dataContext.Communications.FirstOrDefaultAsync(selector, cancellationToken) ?? new Communication
         {
-            Value = model.Value,
-            Type = model.Type,
+            Value = requestModel.Value,
+            Type = requestModel.Type,
             Verifications = new[] { verification },
         };
 

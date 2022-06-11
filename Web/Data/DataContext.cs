@@ -1,8 +1,8 @@
 using System.Reflection;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Web.Data.Entities;
 using Web.Extensions;
+using File = Web.Data.Entities.File;
 
 #pragma warning disable CS8618
 
@@ -11,6 +11,8 @@ namespace Web.Data;
 public class DataContext : DbContext
 {
     public DbSet<Communication> Communications { get; set; }
+    public DbSet<File> Files { get; set; }
+    public DbSet<Interest> Interests { get; set; }
     public DbSet<Verification> Verifications { get; set; }
     public DbSet<User> Users { get; set; }
 
