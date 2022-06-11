@@ -23,7 +23,7 @@ public class HistoryFilter
 public class HistorySort
 {
     public bool IsAscending { get; set; }
-    public HistorySortValue Value { get; set; }
+    public HistorySortValue Value { get; set; } = HistorySortValue.Score;
 }
 
 public enum HistorySortValue

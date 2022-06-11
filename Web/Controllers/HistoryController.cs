@@ -16,7 +16,7 @@ namespace Web.Controllers;
 public class HistoryController : ControllerBase
 {
     [HttpGet, Route("")]
-    public async Task<HistoryItemsResponse> GetHistoryItems(HistoryItemsRequest request,
+    public async Task<HistoryItemsResponse> GetHistoryItems([FromQuery] HistoryItemsRequest request,
                                                             [FromServices] DataContext dataContext,
                                                             CancellationToken cancellationToken)
     {
@@ -46,7 +46,7 @@ public class HistoryController : ControllerBase
     }
 
     [HttpGet, Route("detail")]
-    public HistoryDetailResponse DetailHistory(HistoryDetailRequest request,
+    public HistoryDetailResponse DetailHistory([FromQuery] HistoryDetailRequest request,
                                                [FromServices] DataContext dataContext,
                                                CancellationToken cancellationToken)
     {
@@ -89,7 +89,7 @@ public class HistoryController : ControllerBase
     }
 
     [HttpGet, Route("new"), Authorize(Roles = nameof(OrganizerUser))]
-    public async Task<InfoNewHistoryResponse> InfoNewHistory(InfoNewHistoryRequest request,
+    public async Task<InfoNewHistoryResponse> InfoNewHistory([FromQuery] InfoNewHistoryRequest request,
                                                              [FromServices] DataContext dataContext,
                                                              CancellationToken cancellationToken)
     {
