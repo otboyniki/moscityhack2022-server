@@ -17,7 +17,7 @@ public class Event : IEntity, IHasTimestamps
 
     public string Description { get; set; } = null!;
 
-//    public Point Location { get; set; } = null!;
+    public Point Location { get; set; } = null!;
     public string Kind { get; set; } = null!;
 
     public DateTime Since { get; set; }

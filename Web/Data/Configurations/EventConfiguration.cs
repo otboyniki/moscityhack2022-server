@@ -8,7 +8,7 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
 {
     public void Configure(EntityTypeBuilder<Event> builder)
     {
-//        builder.Property(x => x.Location)
-//               .HasColumnType("geography (point)");
+        builder.Property(x => x.Location)
+               .HasColumnType("geography (point)");
     }
 }
