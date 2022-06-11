@@ -23,9 +23,9 @@ public class AuthController : ControllerBase
     private const string UniversalCode = "7373";
 
     [HttpPost, Route("/sign-in")]
-    public async Task<Guid> SignIn(SignInRequest request,
-                                   [FromServices] DataContext dataContext,
-                                   CancellationToken cancellationToken)
+    public async Task<AuthResponse> SignIn(SignInRequest request,
+                                           [FromServices] DataContext dataContext,
+                                           CancellationToken cancellationToken)
     {
         var selector = (Expression<Func<Communication, bool>>)(x => x.Type == request.Communication.Type && x.Value == request.Communication.Value);
         var communication = await dataContext.Communications
@@ -39,13 +39,13 @@ public class AuthController : ControllerBase
         var verification = AddVerification(communication, UniversalCode);
 
         await dataContext.SaveChangesAsync(cancellationToken);
-        return verification.Id;
+        return new AuthResponse(verification.Id);
     }
 
     [HttpPost, Route("/fast-registration")]
-    public async Task<Guid> FastRegistration(FastRegistrationRequest request,
-                                             CancellationToken cancellationToken,
-                                             [FromServices] DataContext dataContext)
+    public async Task<AuthResponse> FastRegistration(FastRegistrationRequest request,
+                                                     CancellationToken cancellationToken,
+                                                     [FromServices] DataContext dataContext)
     {
         var selector = (Expression<Func<Communication, bool>>)(x => x.Type == request.Communication.Type && x.Value == request.Communication.Value);
 
@@ -70,7 +70,7 @@ public class AuthController : ControllerBase
         }
 
         await dataContext.SaveChangesAsync(cancellationToken);
-        return verification.Id;
+        return new AuthResponse(verification.Id);
     }
 
     [HttpPost, Route("/fast-registration/confirm")]
@@ -102,9 +102,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost, Route("/registration/volunteer")]
-    public async Task<Guid> VolunteerUserRegistration(VolunteerUserRegistrationRequest request,
-                                                      CancellationToken cancellationToken,
-                                                      [FromServices] DataContext dataContext)
+    public async Task<AuthResponse> VolunteerUserRegistration(VolunteerUserRegistrationRequest request,
+                                                              CancellationToken cancellationToken,
+                                                              [FromServices] DataContext dataContext)
     {
         await CheckUserAsync(request.Email, dataContext, cancellationToken);
 
@@ -114,13 +114,13 @@ public class AuthController : ControllerBase
         dataContext.Users.Add(user);
 
         await dataContext.SaveChangesAsync(cancellationToken);
-        return verification.Id;
+        return new AuthResponse(verification.Id);
     }
 
     [HttpPost, Route("/registration/organizer")]
-    public async Task<Guid> OrganizerUserRegistration(OrganizerUserRegistrationRequest request,
-                                                      CancellationToken cancellationToken,
-                                                      [FromServices] DataContext dataContext)
+    public async Task<AuthResponse> OrganizerUserRegistration(OrganizerUserRegistrationRequest request,
+                                                              CancellationToken cancellationToken,
+                                                              [FromServices] DataContext dataContext)
     {
         await CheckUserAsync(request.Email, dataContext, cancellationToken);
 
@@ -138,7 +138,7 @@ public class AuthController : ControllerBase
         dataContext.Users.Add(user);
 
         await dataContext.SaveChangesAsync(cancellationToken);
-        return verification.Id;
+        return new AuthResponse(verification.Id);
     }
 
     private Verification AddVerification(Communication communication, string code)
