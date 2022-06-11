@@ -74,21 +74,20 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost, Route("/fast-registration/confirm")]
-    public async Task ConfirmFastRegistration(Guid id,
-                                              string code,
+    public async Task ConfirmFastRegistration(ConfirmFastRegistrationRequest request,
                                               CancellationToken cancellationToken,
                                               [FromServices] DataContext dataContext)
     {
         var verification = await dataContext.Verifications
                                             .Include(x => x.Communication)
                                             .ThenInclude(x => x.User)
-                                            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+                                            .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
         if (verification == null)
         {
             throw new RestException("Неизвестно кого авторизовывать", HttpStatusCode.NotFound);
         }
 
-        if (verification.Code != code)
+        if (verification.Code != request.Code)
         {
             throw new RestException("Введенный код неверный", HttpStatusCode.Forbidden);
         }
