@@ -89,7 +89,7 @@ public class AuthController : ControllerBase
 
         if (verification.Code != request.Code)
         {
-            throw new RestException("Введенный код неверный", HttpStatusCode.Forbidden);
+            throw new RestException("Введенный код неверный", HttpStatusCode.BadRequest);
         }
 
         var claims = new List<Claim> { new(ClaimsIdentity.DefaultNameClaimType, verification.Communication.User!.Id.ToString()) };

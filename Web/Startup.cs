@@ -2,10 +2,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpLogging;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Web.Data;
-using Web.Data.Entities;
 using Web.Extensions;
 
 namespace Web;
@@ -24,12 +22,12 @@ public class Startup
                 .AddJsonOptions(options => ConfigureJsonSerializer(options.JsonSerializerOptions));
 
         services.AddDbContext<DataContext>((ctx, options) =>
-            options.UseNpgsql(ctx.GetRequiredService<IConfiguration>()
-                                 .GetConnectionString("DefaultConnection"),
-                              b => b.UseNetTopologySuite())
-                   .UseLoggerFactory(ctx.GetRequiredService<ILoggerFactory>())
-                   .EnableDetailedErrors()
-                   .EnableSensitiveDataLogging());
+                                               options.UseNpgsql(ctx.GetRequiredService<IConfiguration>()
+                                                                    .GetConnectionString("DefaultConnection"),
+                                                                 b => b.UseNetTopologySuite())
+                                                      .UseLoggerFactory(ctx.GetRequiredService<ILoggerFactory>())
+                                                      .EnableDetailedErrors()
+                                                      .EnableSensitiveDataLogging());
 
         services.AddSwaggerGen();
         services.AddHttpLogging(options =>
@@ -38,9 +36,9 @@ public class Startup
         });
 
         services.AddCors(options => options.AddPolicy("CorsPolicy", builder =>
-            builder.AllowAnyOrigin()
-                   .AllowAnyMethod()
-                   .AllowAnyHeader()));
+                                                          builder.AllowAnyOrigin()
+                                                                 .AllowAnyMethod()
+                                                                 .AllowAnyHeader()));
 
         services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie();
