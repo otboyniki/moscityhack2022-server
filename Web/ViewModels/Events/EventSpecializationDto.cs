@@ -40,7 +40,7 @@ public class EventSpecializationDto
 
         TotalParticipants = s.Participants.Count,
         ConfirmedParticipants = s.Participants
-                                 .Count(x => x.Confirmed),
+                                 .Count(x => x.IsConfirmed),
         ReservedParticipants = s.Participants
                                 .Count(x => !x.IsMember),
 

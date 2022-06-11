@@ -35,19 +35,17 @@ public class FileService
         System.IO.File.Delete(filePath);
     }
 
-    public byte[] LoadFile(string path) =>
-        System.IO.File.ReadAllBytes(Path.Combine(RootPath, path));
+    public Stream LoadFile(string path) =>
+        System.IO.File.OpenRead(Path.Combine(RootPath, path));
 
     private async Task SaveFileAsync(Stream stream, string path, CancellationToken ct)
     {
-        await using (var fileStream = new FileStream(path, FileMode.CreateNew))
+        await using var fileStream = new FileStream(path, FileMode.CreateNew);
+        if (stream.CanSeek)
         {
-            if (stream.CanSeek)
-            {
-                stream.Seek(0, SeekOrigin.Begin);
-            }
-
-            await stream.CopyToAsync(fileStream, BufferSize, ct);
+            stream.Seek(0, SeekOrigin.Begin);
         }
+
+        await stream.CopyToAsync(fileStream, BufferSize, ct);
     }
 }

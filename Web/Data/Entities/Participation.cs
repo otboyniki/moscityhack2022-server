@@ -20,7 +20,12 @@ public class Participation : IEntity, IHasTimestamps
     /// <summary>
     ///     Подтверждение волонтёром
     /// </summary>
-    public bool Confirmed { get; set; }
+    public bool IsConfirmed { get; set; }
+
+    /// <summary>
+    ///     Организатор отметил что волонтёр явился на мероприятие
+    /// </summary>
+    public bool IsAttended { get; set; }
 
     /// <remarks>
     ///     Если false, значит чел в резерве

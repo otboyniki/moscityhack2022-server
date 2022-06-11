@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
 using Web.Data;
 using Web.Extensions;
+using Web.Services;
 
 namespace Web;
 
@@ -55,6 +56,8 @@ public class Startup
                     }
                 });
         services.AddAuthorization();
+
+        services.AddScoped<FileService>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

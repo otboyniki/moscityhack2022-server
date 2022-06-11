@@ -70,7 +70,7 @@ public class EventDto
                                .Count(),
         ConfirmedParticipants = evt.Specializations
                                    .SelectMany(x => x.Participants)
-                                   .Count(x => x.Confirmed),
+                                   .Count(x => x.IsConfirmed),
         ReservedParticipants = evt.Specializations
                                   .SelectMany(x => x.Participants)
                                   .Count(x => !x.IsMember),

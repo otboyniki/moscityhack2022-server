@@ -13,7 +13,7 @@ using Web.ViewModels.Events;
 namespace Web.Controllers;
 
 [Route("events")]
-[ApiController]
+[ApiController, Authorize]
 [Consumes(MediaTypeNames.Application.Json), Produces(MediaTypeNames.Application.Json)]
 public class EventController : ControllerBase
 {
@@ -253,7 +253,7 @@ public class EventController : ControllerBase
                                             .FirstOrDefaultAsync(cancellationToken)
                             ?? throw new RestException("Запись об участии не найдена", HttpStatusCode.NotFound);
 
-        participation.Confirmed = true;
+        participation.IsConfirmed = true;
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
