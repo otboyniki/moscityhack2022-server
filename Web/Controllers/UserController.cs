@@ -18,7 +18,7 @@ public class UserController : ControllerBase
     public async Task<ProfileResponse> GetProfile(CancellationToken cancellationToken,
                                                   [FromServices] DataContext dataContext)
     {
-        var userId = Guid.Parse(HttpContext.User.Identity!.Name!);
+        var userId = Guid.Parse(User.Identity!.Name!);
         var user = dataContext.Users
                               .Include(x => x.Avatar)
                               .Include(x => x.Communications)

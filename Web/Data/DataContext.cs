@@ -12,6 +12,7 @@ public class DataContext : DbContext
 {
     public DbSet<Communication> Communications { get; set; }
     public DbSet<Company> Companies { get; set; }
+    public DbSet<Comment> Comments { get; set; }
     public DbSet<File> Files { get; set; }
     public DbSet<Story> Stories { get; set; }
     public DbSet<Activity> Activities { get; set; }

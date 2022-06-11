@@ -15,13 +15,13 @@ namespace Web.Controllers;
 [ApiController, Authorize]
 public class StoryController : ControllerBase
 {
-    [HttpGet, Route("")]
+    [HttpGet]
     public async Task<StoryItemsResponse> GetStoryItems([FromQuery] StoryItemsRequest request,
                                                         [FromServices] DataContext dataContext,
                                                         CancellationToken cancellationToken)
     {
         StoryItemsValidate(request);
-        var filteredStoryItems = await GetFilteredStoryItemsAsync(request, dataContext);
+        var filteredStoryItems = GetFilteredStoryItems(request, dataContext);
 
         var response = new StoryItemsResponse();
         if (request.Filters.Skip == 0)
@@ -37,8 +37,8 @@ public class StoryController : ControllerBase
         return response;
     }
 
-    [HttpGet, Route("{id}")]
-    public async Task<StoryDetailResponse> DetailStory([FromRoute] Guid id,
+    [HttpGet, Route("/{storyId:guid}")]
+    public async Task<StoryDetailResponse> DetailStory([FromRoute] Guid storyId,
                                                        [FromServices] DataContext dataContext,
                                                        CancellationToken cancellationToken)
     {
@@ -51,13 +51,13 @@ public class StoryController : ControllerBase
                                .ThenInclude(x => x.Avatar)
                                .Include(x => x.StoryScores)
                                .Include(x => x.StoryViews)
-                               .FirstOrDefault(x => x.Id == id);
+                               .FirstOrDefault(x => x.Id == storyId);
         if (story == null)
         {
             throw new RestException("История не найдена", HttpStatusCode.NotFound);
         }
 
-        var userId = HttpContext.User.GetUserId()!.Value;
+        var userId = User.GetUserId()!.Value;
         if (story.StoryViews.All(x => x.UserId != userId))
         {
             story.StoryViews.Add(new StoryView { UserId = userId });
@@ -84,12 +84,12 @@ public class StoryController : ControllerBase
         };
     }
 
-    [HttpPost, Route(""), Authorize(Roles = nameof(OrganizerUser))]
+    [HttpPost, Authorize(Roles = nameof(OrganizerUser))]
     public async Task<StoryNewResponse> AddStory(StoryNewRequest request,
                                                  [FromServices] DataContext dataContext,
                                                  CancellationToken cancellationToken)
     {
-        var userId = HttpContext.User.GetUserId();
+        var userId = User.GetUserId();
         var user = (OrganizerUser)await dataContext.Users
                                                    .Include(x => ((OrganizerUser)x).Company)
                                                    .FirstAsync(x => x.Id == userId, cancellationToken);
@@ -109,6 +109,99 @@ public class StoryController : ControllerBase
         await dataContext.SaveChangesAsync(cancellationToken);
 
         return new StoryNewResponse();
+    }
+
+    [HttpPost, Route("/{storyId:guid}/comment")]
+    public async Task<CreateCommentResponse> CreateComment([FromRoute] Guid storyId,
+                                                           [FromBody] CreateCommentRequest request,
+                                                           [FromServices] DataContext dataContext,
+                                                           CancellationToken cancellationToken)
+    {
+        var story = dataContext.Stories
+                               .Include(x => x.Comments)
+                               .FirstOrDefault(x => x.Id == storyId);
+        if (story == null)
+        {
+            throw new RestException("История не найдена", HttpStatusCode.NotFound);
+        }
+
+        var userId = User.GetUserId()!.Value;
+        story.Comments.Add(new Comment
+        {
+            Text = request.Text,
+            UserId = userId,
+        });
+
+        await dataContext.SaveChangesAsync(cancellationToken);
+        return new CreateCommentResponse();
+    }
+
+    [HttpPut, Route("/{storyId:guid}/comment/{commentId:guid}/like")]
+    public async Task LikeComment([FromRoute] Guid storyId,
+                                  [FromRoute] Guid commentId,
+                                  [FromServices] DataContext dataContext,
+                                  CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!.Value;
+        var comment = dataContext.Comments
+                                 .Include(x => x.ReviewScores)
+                                 .FirstOrDefault(x => x.Id == commentId)
+                      ?? throw new RestException("Комментарий не найдена", HttpStatusCode.NotFound);
+
+        var reviewScore = comment.ReviewScores.FirstOrDefault(x => x.UserId == userId);
+        switch (reviewScore)
+        {
+            case null:
+                comment.ReviewScores.Add(new ReviewScore
+                {
+                    ReviewId = commentId,
+                    UserId = userId,
+                    Positive = true,
+                });
+                break;
+            case { Positive: false }:
+                reviewScore.Positive = true;
+                break;
+            case { Positive: true }:
+                comment.ReviewScores.Remove(reviewScore);
+                break;
+        }
+
+        await dataContext.SaveChangesAsync(cancellationToken);
+    }
+
+    [HttpPut, Route("/{storyId:guid}/comment/{commentId:guid}/dislike")]
+    public async Task DislikeComment([FromRoute] Guid storyId,
+                                     [FromRoute] Guid commentId,
+                                     [FromServices] DataContext dataContext,
+                                     CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!.Value;
+        var comment = dataContext.Comments
+                                 .Include(x => x.ReviewScores)
+                                 .FirstOrDefault(x => x.Id == commentId)
+                      ?? throw new RestException("Комментарий не найдена", HttpStatusCode.NotFound);
+
+        var reviewScore = comment.ReviewScores.FirstOrDefault(x => x.UserId == userId);
+        switch (reviewScore)
+        {
+            case null:
+                comment.ReviewScores.Add(new ReviewScore
+                {
+                    ReviewId = commentId,
+                    UserId = userId,
+                    Positive = false,
+                });
+                break;
+            case { Positive: true }:
+                reviewScore.Positive = false;
+                break;
+            case { Positive: false }:
+                comment.ReviewScores.Remove(reviewScore);
+                break;
+        }
+
+        await dataContext.SaveChangesAsync(cancellationToken);
     }
 
     private static Expression<Func<Story, StoryItem>> GetStoryItemSelector()
@@ -133,8 +226,8 @@ public class StoryController : ControllerBase
         };
     }
 
-    private static async Task<IQueryable<Story>> GetFilteredStoryItemsAsync(StoryItemsRequest request,
-                                                                            DataContext dataContext)
+    private static IQueryable<Story> GetFilteredStoryItems(StoryItemsRequest request,
+                                                           DataContext dataContext)
     {
         var storyQuery = dataContext.Stories.AsQueryable();
         var selector = (Expression<Func<Story, int>>)(request.Sort.Value switch

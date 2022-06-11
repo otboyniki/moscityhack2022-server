@@ -41,7 +41,7 @@ namespace Web.Migrations
 
                     b.HasIndex("IconId");
 
-                    b.ToTable("Activities");
+                    b.ToTable("Activities", (string)null);
                 });
 
             modelBuilder.Entity("Web.Data.Entities.Communication", b =>
@@ -71,7 +71,7 @@ namespace Web.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Communications");
+                    b.ToTable("Communications", (string)null);
                 });
 
             modelBuilder.Entity("Web.Data.Entities.Company", b =>
@@ -92,7 +92,7 @@ namespace Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Companies");
+                    b.ToTable("Companies", (string)null);
                 });
 
             modelBuilder.Entity("Web.Data.Entities.Event", b =>
@@ -139,7 +139,7 @@ namespace Web.Migrations
 
                     b.HasIndex("PreviewId");
 
-                    b.ToTable("Events");
+                    b.ToTable("Events", (string)null);
                 });
 
             modelBuilder.Entity("Web.Data.Entities.EventSpecialization", b =>
@@ -181,7 +181,7 @@ namespace Web.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("EventSpecializations");
+                    b.ToTable("EventSpecializations", (string)null);
                 });
 
             modelBuilder.Entity("Web.Data.Entities.File", b =>
@@ -211,7 +211,7 @@ namespace Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Files");
+                    b.ToTable("Files", (string)null);
                 });
 
             modelBuilder.Entity("Web.Data.Entities.Participation", b =>
@@ -247,7 +247,7 @@ namespace Web.Migrations
 
                     b.HasIndex("VolunteerId");
 
-                    b.ToTable("Participants");
+                    b.ToTable("Participants", (string)null);
                 });
 
             modelBuilder.Entity("Web.Data.Entities.Review", b =>
@@ -277,7 +277,7 @@ namespace Web.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Review");
+                    b.ToTable("Review", (string)null);
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Review");
                 });
@@ -303,7 +303,7 @@ namespace Web.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ReviewScore");
+                    b.ToTable("ReviewScore", (string)null);
                 });
 
             modelBuilder.Entity("Web.Data.Entities.Story", b =>
@@ -346,7 +346,7 @@ namespace Web.Migrations
 
                     b.HasIndex("PreviewId");
 
-                    b.ToTable("Stories");
+                    b.ToTable("Stories", (string)null);
                 });
 
             modelBuilder.Entity("Web.Data.Entities.StoryActivity", b =>
@@ -361,7 +361,7 @@ namespace Web.Migrations
 
                     b.HasIndex("ActivityId");
 
-                    b.ToTable("StoryActivity");
+                    b.ToTable("StoryActivity", (string)null);
                 });
 
             modelBuilder.Entity("Web.Data.Entities.StoryScore", b =>
@@ -379,7 +379,7 @@ namespace Web.Migrations
 
                     b.HasIndex("StoryId");
 
-                    b.ToTable("StoryScore");
+                    b.ToTable("StoryScore", (string)null);
                 });
 
             modelBuilder.Entity("Web.Data.Entities.StoryView", b =>
@@ -394,7 +394,7 @@ namespace Web.Migrations
 
                     b.HasIndex("StoryId");
 
-                    b.ToTable("StoryView");
+                    b.ToTable("StoryView", (string)null);
                 });
 
             modelBuilder.Entity("Web.Data.Entities.User", b =>
@@ -474,7 +474,7 @@ namespace Web.Migrations
 
                     b.HasIndex("AvatarId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("User");
                 });
@@ -491,7 +491,7 @@ namespace Web.Migrations
 
                     b.HasIndex("ActivityId");
 
-                    b.ToTable("UserActivity");
+                    b.ToTable("UserActivity", (string)null);
                 });
 
             modelBuilder.Entity("Web.Data.Entities.Verification", b =>
@@ -517,7 +517,7 @@ namespace Web.Migrations
 
                     b.HasIndex("CommunicationId");
 
-                    b.ToTable("CommunicationVerifications");
+                    b.ToTable("CommunicationVerifications", (string)null);
                 });
 
             modelBuilder.Entity("Web.Data.Entities.Comment", b =>
@@ -607,7 +607,7 @@ namespace Web.Migrations
                         .WithMany()
                         .HasForeignKey("PreviewId");
 
-                    b.OwnsMany("Web.Data.Entities.Address", "Locations", b1 =>
+                    b.OwnsMany("Web.Data.Entities.Event.Locations#Web.Data.Entities.Address", "Locations", b1 =>
                         {
                             b1.Property<Guid>("EventId")
                                 .HasColumnType("uuid");
@@ -626,13 +626,13 @@ namespace Web.Migrations
 
                             b1.HasKey("EventId", "Id");
 
-                            b1.ToTable("Events_Locations");
+                            b1.ToTable("Events_Locations", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("EventId");
                         });
 
-                    b.OwnsOne("Web.Data.Entities.DateTimeRange", "Meeting", b1 =>
+                    b.OwnsOne("Web.Data.Entities.Event.Meeting#Web.Data.Entities.DateTimeRange", "Meeting", b1 =>
                         {
                             b1.Property<Guid>("EventId")
                                 .HasColumnType("uuid");
@@ -645,13 +645,13 @@ namespace Web.Migrations
 
                             b1.HasKey("EventId");
 
-                            b1.ToTable("Events");
+                            b1.ToTable("Events", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("EventId");
                         });
 
-                    b.OwnsOne("Web.Data.Entities.DateTimeRange", "Recruitment", b1 =>
+                    b.OwnsOne("Web.Data.Entities.Event.Recruitment#Web.Data.Entities.DateTimeRange", "Recruitment", b1 =>
                         {
                             b1.Property<Guid>("EventId")
                                 .HasColumnType("uuid");
@@ -664,7 +664,7 @@ namespace Web.Migrations
 
                             b1.HasKey("EventId");
 
-                            b1.ToTable("Events");
+                            b1.ToTable("Events", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("EventId");
@@ -824,7 +824,7 @@ namespace Web.Migrations
                         .WithMany()
                         .HasForeignKey("AvatarId");
 
-                    b.OwnsOne("Web.Data.Entities.Address", "Address", b1 =>
+                    b.OwnsOne("Web.Data.Entities.User.Address#Web.Data.Entities.Address", "Address", b1 =>
                         {
                             b1.Property<Guid>("UserId")
                                 .HasColumnType("uuid");
@@ -837,7 +837,7 @@ namespace Web.Migrations
 
                             b1.HasKey("UserId");
 
-                            b1.ToTable("Users");
+                            b1.ToTable("Users", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("UserId");
