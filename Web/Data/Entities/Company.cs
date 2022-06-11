@@ -13,7 +13,7 @@ public class Company : IEntity, IHasTimestamps
 
     public string Title { get; set; } = null!;
 
-    public virtual ICollection<User> Owners { get; set; } = new List<User>();
+    public virtual ICollection<OrganizerUser> Owners { get; set; } = new List<OrganizerUser>();
     public virtual ICollection<Event> Events { get; set; } = new List<Event>();
 
     public DateTime CreatedAt { get; set; }

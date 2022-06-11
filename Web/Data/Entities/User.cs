@@ -25,4 +25,8 @@ public abstract class User : IdentityUser<Guid>, IEntity, IHasTimestamps
 
 public class VolunteerUser : User { }
 
-public class OrganizerUser : User { }
+public class OrganizerUser : User
+{
+    public Guid CompanyId { get; set; }
+    public Company Company { get; set; }
+}
