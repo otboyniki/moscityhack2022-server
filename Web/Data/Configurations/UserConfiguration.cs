@@ -8,7 +8,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.Property(x => x.Location)
-               .HasColumnType("geography (point)");
+//        builder.Property(x => x.Location)
+//               .HasColumnType("geography (point)");
     }
 }

@@ -11,7 +11,7 @@ public class User : IdentityUser<Guid>, IEntity, IHasTimestamps
     public string? Patronymic { get; set; }
     public DateTime? Birthday { get; set; }
 
-    public Point? Location { get; set; }
+//    public Point? Location { get; set; }
 
     public Guid? CompanyId { get; set; }
     public Company Company { get; set; } = null!;

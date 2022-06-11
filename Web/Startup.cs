@@ -42,24 +42,9 @@ public class Startup
                    .AllowAnyMethod()
                    .AllowAnyHeader()));
 
-        services.AddAuthentication("AspNetCore.Identity.Application")
-                .Services.ConfigureApplicationCookie(o =>
-                {
-                    o.Cookie.Name = ".AspNetCore.Identity.Application";
-                    o.Events = new CookieAuthenticationEvents
-                    {
-                        OnRedirectToLogin = context =>
-                        {
-                            context.Response.StatusCode = 401;
-                            return Task.CompletedTask;
-                        },
-                        OnRedirectToAccessDenied = context =>
-                        {
-                            context.Response.StatusCode = 403;
-                            return Task.CompletedTask;
-                        }
-                    };
-                });
+        services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie();
+        services.AddAuthorization();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
