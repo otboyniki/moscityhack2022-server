@@ -1,6 +1,6 @@
-namespace Web.ViewModels.History;
+namespace Web.ViewModels.Story;
 
-public class HistoryDetailResponse
+public class StoryDetailResponse
 {
     public string CompanyName { get; set; }
     public DateTime Date { get; set; }
@@ -11,10 +11,10 @@ public class HistoryDetailResponse
     public string Title { get; set; }
     public string Description { get; set; }
 
-    public ICollection<HistoryCommentItem> Comments { get; set; }
+    public ICollection<StoryCommentItem> Comments { get; set; }
 }
 
-public class HistoryCommentItem
+public class StoryCommentItem
 {
     public string FullName { get; set; }
     public DateTime Date { get; set; }

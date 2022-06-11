@@ -19,7 +19,7 @@ public abstract class User : IdentityUser<Guid>, IEntity, IHasTimestamps
 
     public ICollection<Communication> Communications { get; set; } = new List<Communication>();
     public ICollection<UserActivity> UserActivities { get; set; } = new List<UserActivity>();
-    public ICollection<HistoryView> HistoryViews { get; set; } = new List<HistoryView>();
+    public ICollection<StoryView> HistoryViews { get; set; } = new List<StoryView>();
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

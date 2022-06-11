@@ -19,8 +19,8 @@ public abstract class Review : IEntity, IHasTimestamps
 
 public class Comment : Review
 {
-    public Guid HistoryId { get; set; }
-    public History History { get; set; } = null!;
+    public Guid StoryId { get; set; }
+    public Story Story { get; set; } = null!;
 }
 
 public class EventReview : Review

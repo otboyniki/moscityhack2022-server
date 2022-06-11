@@ -1,12 +1,12 @@
-namespace Web.ViewModels.History;
+namespace Web.ViewModels.Story;
 
-public class HistoryItemsRequest
+public class StoryItemsRequest
 {
-    public HistoryFilter Filters { get; set; } = new();
-    public HistorySort Sort { get; set; } = new();
+    public StoryFilter Filters { get; set; } = new();
+    public StorySort Sort { get; set; } = new();
 }
 
-public class HistoryFilter
+public class StoryFilter
 {
     public ICollection<Guid> InterestIds { get; set; } = new List<Guid>();
 
@@ -20,13 +20,13 @@ public class HistoryFilter
     public int Take { get; set; } = 30;
 }
 
-public class HistorySort
+public class StorySort
 {
     public bool IsAscending { get; set; }
-    public HistorySortValue Value { get; set; } = HistorySortValue.Score;
+    public StorySortValue Value { get; set; } = StorySortValue.Score;
 }
 
-public enum HistorySortValue
+public enum StorySortValue
 {
     Score = 1,
     Views = 2,

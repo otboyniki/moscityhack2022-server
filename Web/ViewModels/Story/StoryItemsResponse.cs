@@ -1,11 +1,11 @@
 using Web.Data.Entities;
 
-namespace Web.ViewModels.History;
+namespace Web.ViewModels.Story;
 
-public class HistoryItemsResponse
+public class StoryItemsResponse
 {
-    public HistoryItem? BigItem { get; set; }
-    public ICollection<HistoryItem> Items { get; set; }
+    public StoryItem? BigItem { get; set; }
+    public ICollection<StoryItem> Items { get; set; }
 }
 
 public class ActivityFilterItem
@@ -14,7 +14,7 @@ public class ActivityFilterItem
     public string Title { get; set; }
 }
 
-public class HistoryItem
+public class StoryItem
 {
     public Guid Id { get; set; }
     public string CompanyName { get; set; }
@@ -24,12 +24,12 @@ public class HistoryItem
     public int CommentsCount { get; set; }
     public int ViewsCount { get; set; }
     public Guid? PreviewId { get; set; }
-    public HistoryFormat Format { get; set; }
-    public ICollection<HistoryItemsActivityItem> Activities { get; set; }
+    public StoryFormat Format { get; set; }
+    public ICollection<StoryItemsActivityItem> Activities { get; set; }
     public DateTime Date { get; set; }
 }
 
-public class HistoryItemsActivityItem
+public class StoryItemsActivityItem
 {
     public string Title { get; set; }
     public Guid? IconId { get; set; }
