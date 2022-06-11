@@ -25,7 +25,7 @@ public class Participation : IEntity, IHasTimestamps
     /// <summary>
     ///     Организатор отметил что волонтёр явился на мероприятие
     /// </summary>
-    public bool IsAttended { get; set; }
+    public bool IsVisited { get; set; }
 
     /// <remarks>
     ///     Если false, значит чел в резерве

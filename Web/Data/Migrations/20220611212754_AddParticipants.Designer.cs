@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,10 @@ using Web.Data;
 namespace Web.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20220611212754_AddParticipants")]
+    partial class AddParticipants
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,7 +43,7 @@ namespace Web.Migrations
 
                     b.HasIndex("IconId");
 
-                    b.ToTable("Activities", (string)null);
+                    b.ToTable("Activities");
                 });
 
             modelBuilder.Entity("Web.Data.Entities.Communication", b =>
@@ -71,7 +73,7 @@ namespace Web.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Communications", (string)null);
+                    b.ToTable("Communications");
                 });
 
             modelBuilder.Entity("Web.Data.Entities.Company", b =>
@@ -92,7 +94,7 @@ namespace Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Companies", (string)null);
+                    b.ToTable("Companies");
                 });
 
             modelBuilder.Entity("Web.Data.Entities.Event", b =>
@@ -139,7 +141,7 @@ namespace Web.Migrations
 
                     b.HasIndex("PreviewId");
 
-                    b.ToTable("Events", (string)null);
+                    b.ToTable("Events");
                 });
 
             modelBuilder.Entity("Web.Data.Entities.EventSpecialization", b =>
@@ -181,7 +183,7 @@ namespace Web.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("EventSpecializations", (string)null);
+                    b.ToTable("EventSpecializations");
                 });
 
             modelBuilder.Entity("Web.Data.Entities.File", b =>
@@ -211,7 +213,7 @@ namespace Web.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Files", (string)null);
+                    b.ToTable("Files");
                 });
 
             modelBuilder.Entity("Web.Data.Entities.Participation", b =>
@@ -247,7 +249,7 @@ namespace Web.Migrations
 
                     b.HasIndex("VolunteerId");
 
-                    b.ToTable("Participants", (string)null);
+                    b.ToTable("Participants");
                 });
 
             modelBuilder.Entity("Web.Data.Entities.Review", b =>
@@ -277,7 +279,7 @@ namespace Web.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Review", (string)null);
+                    b.ToTable("Review");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Review");
                 });
@@ -303,7 +305,7 @@ namespace Web.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ReviewScore", (string)null);
+                    b.ToTable("ReviewScore");
                 });
 
             modelBuilder.Entity("Web.Data.Entities.Story", b =>
@@ -346,7 +348,7 @@ namespace Web.Migrations
 
                     b.HasIndex("PreviewId");
 
-                    b.ToTable("Stories", (string)null);
+                    b.ToTable("Stories");
                 });
 
             modelBuilder.Entity("Web.Data.Entities.StoryActivity", b =>
@@ -361,7 +363,7 @@ namespace Web.Migrations
 
                     b.HasIndex("ActivityId");
 
-                    b.ToTable("StoryActivity", (string)null);
+                    b.ToTable("StoryActivity");
                 });
 
             modelBuilder.Entity("Web.Data.Entities.StoryScore", b =>
@@ -379,7 +381,7 @@ namespace Web.Migrations
 
                     b.HasIndex("StoryId");
 
-                    b.ToTable("StoryScore", (string)null);
+                    b.ToTable("StoryScore");
                 });
 
             modelBuilder.Entity("Web.Data.Entities.StoryView", b =>
@@ -394,7 +396,7 @@ namespace Web.Migrations
 
                     b.HasIndex("StoryId");
 
-                    b.ToTable("StoryView", (string)null);
+                    b.ToTable("StoryView");
                 });
 
             modelBuilder.Entity("Web.Data.Entities.User", b =>
@@ -474,7 +476,7 @@ namespace Web.Migrations
 
                     b.HasIndex("AvatarId");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("User");
                 });
@@ -491,7 +493,7 @@ namespace Web.Migrations
 
                     b.HasIndex("ActivityId");
 
-                    b.ToTable("UserActivity", (string)null);
+                    b.ToTable("UserActivity");
                 });
 
             modelBuilder.Entity("Web.Data.Entities.Verification", b =>
@@ -517,7 +519,7 @@ namespace Web.Migrations
 
                     b.HasIndex("CommunicationId");
 
-                    b.ToTable("CommunicationVerifications", (string)null);
+                    b.ToTable("CommunicationVerifications");
                 });
 
             modelBuilder.Entity("Web.Data.Entities.Comment", b =>
@@ -607,7 +609,7 @@ namespace Web.Migrations
                         .WithMany()
                         .HasForeignKey("PreviewId");
 
-                    b.OwnsMany("Web.Data.Entities.Event.Locations#Web.Data.Entities.Address", "Locations", b1 =>
+                    b.OwnsMany("Web.Data.Entities.Address", "Locations", b1 =>
                         {
                             b1.Property<Guid>("EventId")
                                 .HasColumnType("uuid");
@@ -626,13 +628,13 @@ namespace Web.Migrations
 
                             b1.HasKey("EventId", "Id");
 
-                            b1.ToTable("Events_Locations", (string)null);
+                            b1.ToTable("Events_Locations");
 
                             b1.WithOwner()
                                 .HasForeignKey("EventId");
                         });
 
-                    b.OwnsOne("Web.Data.Entities.Event.Meeting#Web.Data.Entities.DateTimeRange", "Meeting", b1 =>
+                    b.OwnsOne("Web.Data.Entities.DateTimeRange", "Meeting", b1 =>
                         {
                             b1.Property<Guid>("EventId")
                                 .HasColumnType("uuid");
@@ -645,13 +647,13 @@ namespace Web.Migrations
 
                             b1.HasKey("EventId");
 
-                            b1.ToTable("Events", (string)null);
+                            b1.ToTable("Events");
 
                             b1.WithOwner()
                                 .HasForeignKey("EventId");
                         });
 
-                    b.OwnsOne("Web.Data.Entities.Event.Recruitment#Web.Data.Entities.DateTimeRange", "Recruitment", b1 =>
+                    b.OwnsOne("Web.Data.Entities.DateTimeRange", "Recruitment", b1 =>
                         {
                             b1.Property<Guid>("EventId")
                                 .HasColumnType("uuid");
@@ -664,7 +666,7 @@ namespace Web.Migrations
 
                             b1.HasKey("EventId");
 
-                            b1.ToTable("Events", (string)null);
+                            b1.ToTable("Events");
 
                             b1.WithOwner()
                                 .HasForeignKey("EventId");
@@ -824,7 +826,7 @@ namespace Web.Migrations
                         .WithMany()
                         .HasForeignKey("AvatarId");
 
-                    b.OwnsOne("Web.Data.Entities.User.Address#Web.Data.Entities.Address", "Address", b1 =>
+                    b.OwnsOne("Web.Data.Entities.Address", "Address", b1 =>
                         {
                             b1.Property<Guid>("UserId")
                                 .HasColumnType("uuid");
@@ -837,7 +839,7 @@ namespace Web.Migrations
 
                             b1.HasKey("UserId");
 
-                            b1.ToTable("Users", (string)null);
+                            b1.ToTable("Users");
 
                             b1.WithOwner()
                                 .HasForeignKey("UserId");

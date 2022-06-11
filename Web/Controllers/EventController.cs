@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Mime;
+using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +14,7 @@ using Web.ViewModels.Events;
 namespace Web.Controllers;
 
 [Route("events")]
-[ApiController, AllowAnonymous]
+[ApiController]
 [Consumes(MediaTypeNames.Application.Json), Produces(MediaTypeNames.Application.Json)]
 public class EventController : ControllerBase
 {
@@ -203,6 +204,38 @@ public class EventController : ControllerBase
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    [HttpGet]
+    [Route("{eventId:guid}/specializations/{specializationId:guid}/qr")]
+    [Authorize(Roles = nameof(VolunteerUser))]
+    public async Task<IActionResult> ReadEventSpecializationQr([FromRoute] Guid eventId,
+                                                               [FromRoute] Guid specializationId,
+                                                               CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!.Value;
+        var spec = await _dbContext.Events
+                                   .AsNoTracking()
+                                   .Where(x => x.Id == eventId)
+                                   .SelectMany(x => x.Specializations)
+                                   .Where(x => x.Id == specializationId)
+                                   .Select(x => new { x.Id, x.EventId })
+                                   .FirstOrDefaultAsync(cancellationToken)
+                   ?? throw new RestException("Мероприятие не найдено", HttpStatusCode.NotFound);
+
+        var url = Url.Action(
+            action: nameof(MarkEventSpecializationVolunteerVisited),
+            values: new
+            {
+                spec.EventId,
+                SpecializationId = spec.Id,
+                VolunteerId = userId
+            },
+            controller: null,
+            protocol: null,
+            host: "api.otboyniki-moscityhack2022.ru");
+
+        return Redirect($"http://qrcoder.ru/code/?{UrlEncoder.Default.Encode(url!)}&10&3");
+    }
+
     [HttpPost]
     [Route("{eventId:guid}/specializations/{specializationId:guid}/join")]
     [Authorize(Roles = nameof(VolunteerUser))]
@@ -264,6 +297,34 @@ public class EventController : ControllerBase
 
         participation.IsConfirmed = true;
         await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    [HttpGet, ApiExplorerSettings(IgnoreApi = true)]
+    [Route("{eventId:guid}/specializations/{specializationId:guid}/mark-visited")]
+    [Authorize(Roles = nameof(OrganizerUser))]
+    [Produces(MediaTypeNames.Text.Plain)]
+    public async Task<IActionResult> MarkEventSpecializationVolunteerVisited([FromRoute] Guid eventId,
+                                                                             [FromRoute] Guid specializationId,
+                                                                             [FromQuery] Guid volunteerId,
+                                                                             CancellationToken cancellationToken)
+    {
+        var participation = await _dbContext.Events
+                                            .Where(x => x.Id == eventId)
+                                            .SelectMany(x => x.Specializations)
+                                            .Where(x => x.Id == specializationId)
+                                            .SelectMany(x => x.Participants)
+                                            .Where(x => x.VolunteerId == volunteerId)
+                                            .FirstOrDefaultAsync(cancellationToken);
+
+        if (participation is null)
+        {
+            return Ok("Запись об участии не найдена");
+        }
+
+        participation.IsVisited = true;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return Ok("Участии волонтёра в мероприятии подтверждено");
     }
 
     [HttpPost]
