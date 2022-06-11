@@ -8,7 +8,7 @@ public class StoryItemsRequest
 
 public class StoryFilter
 {
-    public ICollection<Guid> InterestIds { get; set; } = new List<Guid>();
+    public ICollection<Guid> ActivityIds { get; set; } = new List<Guid>();
 
     public DateTime? FromDate { get; set; }
     public DateTime? ToDate { get; set; }

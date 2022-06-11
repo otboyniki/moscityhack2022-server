@@ -4,14 +4,7 @@ namespace Web.ViewModels.Story;
 
 public class StoryItemsResponse
 {
-    public StoryItem? BigItem { get; set; }
     public ICollection<StoryItem> Items { get; set; }
-}
-
-public class ActivityFilterItem
-{
-    public Guid Id { get; set; }
-    public string Title { get; set; }
 }
 
 public class StoryItem

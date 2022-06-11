@@ -23,16 +23,10 @@ public class StoryController : ControllerBase
         StoryItemsValidate(request);
         var filteredStoryItems = GetFilteredStoryItems(request, dataContext);
 
-        var response = new StoryItemsResponse();
-        if (request.Filters.Skip == 0)
+        var response = new StoryItemsResponse
         {
-            response.BigItem = await filteredStoryItems.Select(GetStoryItemSelector()).FirstOrDefaultAsync(cancellationToken);
-            response.Items = await filteredStoryItems.Skip(1).Select(GetStoryItemSelector()).ToArrayAsync(cancellationToken);
-        }
-        else
-        {
-            response.Items = await filteredStoryItems.Select(GetStoryItemSelector()).ToArrayAsync(cancellationToken);
-        }
+            Items = await filteredStoryItems.Select(GetStoryItemSelector()).ToArrayAsync(cancellationToken),
+        };
 
         return response;
     }
@@ -136,7 +130,7 @@ public class StoryController : ControllerBase
         return new CreateCommentResponse();
     }
 
-    [HttpPut, Route("/{storyId:guid}/comment/{commentId:guid}/like")]
+    [HttpPost, Route("/{storyId:guid}/comment/{commentId:guid}/like")]
     public async Task LikeComment([FromRoute] Guid storyId,
                                   [FromRoute] Guid commentId,
                                   [FromServices] DataContext dataContext,
@@ -170,7 +164,7 @@ public class StoryController : ControllerBase
         await dataContext.SaveChangesAsync(cancellationToken);
     }
 
-    [HttpPut, Route("/{storyId:guid}/comment/{commentId:guid}/dislike")]
+    [HttpPost, Route("/{storyId:guid}/comment/{commentId:guid}/dislike")]
     public async Task DislikeComment([FromRoute] Guid storyId,
                                      [FromRoute] Guid commentId,
                                      [FromServices] DataContext dataContext,
@@ -260,9 +254,9 @@ public class StoryController : ControllerBase
             storyQuery = storyQuery.Where(x => x.StoryScores.Count <= request.Filters.ToScore);
         }
 
-        if (request.Filters.InterestIds.Any())
+        if (request.Filters.ActivityIds.Any())
         {
-            storyQuery = storyQuery.Where(x => x.StoryActivities.Any(y => request.Filters.InterestIds.Contains(y.ActivityId)));
+            storyQuery = storyQuery.Where(x => x.StoryActivities.Any(y => request.Filters.ActivityIds.Contains(y.ActivityId)));
         }
 
         storyQuery = storyQuery.Skip(request.Filters.Skip)
