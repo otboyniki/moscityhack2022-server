@@ -74,9 +74,9 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost, Route("/fast-registration/confirm")]
-    public async Task ConfirmFastRegistration(ConfirmFastRegistrationRequest request,
-                                              CancellationToken cancellationToken,
-                                              [FromServices] DataContext dataContext)
+    public async Task<object> ConfirmFastRegistration(ConfirmFastRegistrationRequest request,
+                                                      CancellationToken cancellationToken,
+                                                      [FromServices] DataContext dataContext)
     {
         var verification = await dataContext.Verifications
                                             .Include(x => x.Communication)
@@ -98,6 +98,7 @@ public class AuthController : ControllerBase
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
         await dataContext.SaveChangesAsync(cancellationToken);
+        return new { };
     }
 
     [HttpPost, Route("/registration/volunteer")]
