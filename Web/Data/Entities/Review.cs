@@ -6,10 +6,10 @@ public abstract class Review : IEntity, IHasTimestamps
 {
     public Guid Id { get; set; }
 
-    public string Text { get; set; }
+    public string Text { get; set; } = null!;
 
     public Guid UserId { get; set; }
-    public User User { get; set; }
+    public User User { get; set; } = null!;
 
     public ICollection<ReviewScore> ReviewScores { get; set; } = new List<ReviewScore>();
 
@@ -20,5 +20,14 @@ public abstract class Review : IEntity, IHasTimestamps
 public class Comment : Review
 {
     public Guid HistoryId { get; set; }
-    public History History { get; set; }
+    public History History { get; set; } = null!;
+}
+
+public class EventReview : Review
+{
+    public int CompanyRate { get; set; }
+    public int GoalComplianceRate { get; set; }
+
+    public Guid EventId { get; set; }
+    public Event Event { get; set; } = null!;
 }

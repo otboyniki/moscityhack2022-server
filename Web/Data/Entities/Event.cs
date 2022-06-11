@@ -31,6 +31,7 @@ public class Event : IEntity, IHasTimestamps
     public string? MeetingNote { get; set; }
 
     public virtual ICollection<EventSpecialization> Specializations { get; set; } = new List<EventSpecialization>();
+    public virtual ICollection<EventReview> EventReviews { get; set; } = new List<EventReview>();
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

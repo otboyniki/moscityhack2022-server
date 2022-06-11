@@ -9,6 +9,7 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
     public void Configure(EntityTypeBuilder<Review> builder)
     {
         builder.HasDiscriminator()
-               .HasValue<Comment>("Comment");
+               .HasValue<Comment>("Comment")
+               .HasValue<EventReview>(nameof(EventReview));
     }
 }

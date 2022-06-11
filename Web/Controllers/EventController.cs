@@ -13,7 +13,7 @@ using Web.ViewModels.Events;
 namespace Web.Controllers;
 
 [Route("events")]
-[ApiController, Authorize]
+[ApiController, AllowAnonymous]
 [Consumes(MediaTypeNames.Application.Json), Produces(MediaTypeNames.Application.Json)]
 public class EventController : ControllerBase
 {
@@ -303,6 +303,186 @@ public class EventController : ControllerBase
 
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
+    }
+
+    #endregion
+
+    #region Reviews
+
+    [HttpGet]
+    [Route("{eventId:guid}/reviews")]
+    public async Task<Page<ReviewDto>> ListEventReviews([FromRoute] Guid eventId,
+                                                        [FromQuery] ListEventsRequest request,
+                                                        CancellationToken cancellationToken) =>
+        await _dbContext.Events
+                        .AsNoTracking()
+                        .Where(x => x.Id == eventId)
+                        .SelectMany(x => x.EventReviews)
+                        .OrderByDescending(x => x.CreatedAt)
+                        .Select(ReviewDto.Projection(User.GetUserId()!.Value))
+                        .PaginateAsync(request, cancellationToken);
+
+    [HttpPost]
+    [Route("{eventId:guid}/reviews")]
+    [Authorize(Roles = nameof(VolunteerUser))]
+    public async Task<Entity> CreateEventReview([FromRoute] Guid eventId,
+                                                [FromBody] UpdateReviewRequest request,
+                                                CancellationToken cancellationToken)
+    {
+        var review = new EventReview
+        {
+            EventId = eventId,
+            UserId = User.GetUserId()!.Value,
+
+            Text = request.Text,
+            CompanyRate = request.CompanyRate,
+            GoalComplianceRate = request.GoalComplianceRate
+        };
+
+        _dbContext.Add(review);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return Entity.From(review);
+    }
+
+    [HttpGet]
+    [Route("{eventId:guid}/reviews/{reviewId:guid}")]
+    public async Task<ReviewDto> ReadEventReview([FromRoute] Guid eventId,
+                                                 [FromRoute] Guid reviewId,
+                                                 CancellationToken cancellationToken) =>
+        await _dbContext.Events
+                        .AsNoTracking()
+                        .Where(x => x.Id == eventId)
+                        .SelectMany(x => x.EventReviews)
+                        .Where(x => x.Id == reviewId)
+                        .Select(ReviewDto.Projection(User.GetUserId()!.Value))
+                        .FirstOrDefaultAsync(cancellationToken)
+        ?? throw new RestException("Отзыв не найден", HttpStatusCode.NotFound);
+
+    [HttpPatch]
+    [Route("{eventId:guid}/reviews/{reviewId:guid}")]
+    [Authorize(Roles = nameof(VolunteerUser))]
+    public async Task UpdateEventReview([FromRoute] Guid eventId,
+                                        [FromRoute] Guid reviewId,
+                                        [FromBody] UpdateReviewRequest request,
+                                        CancellationToken cancellationToken)
+    {
+        var review = await _dbContext.Events
+                                     .Where(x => x.Id == eventId)
+                                     .SelectMany(x => x.EventReviews)
+                                     .Where(x => x.Id == reviewId)
+                                     .FirstOrDefaultAsync(cancellationToken)
+                     ?? throw new RestException("Отзыв не найден", HttpStatusCode.NotFound);
+
+        review.Text = request.Text;
+        review.CompanyRate = request.CompanyRate;
+        review.GoalComplianceRate = request.GoalComplianceRate;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    [HttpDelete]
+    [Route("{eventId:guid}/reviews/{reviewId:guid}")]
+    [Authorize(Roles = nameof(VolunteerUser))]
+    public async Task DeleteEventReview([FromRoute] Guid eventId,
+                                        [FromRoute] Guid reviewId,
+                                        CancellationToken cancellationToken)
+    {
+        var review = await _dbContext.Events
+                                     .Where(x => x.Id == eventId)
+                                     .SelectMany(x => x.EventReviews)
+                                     .Where(x => x.Id == reviewId)
+                                     .FirstOrDefaultAsync(cancellationToken)
+                     ?? throw new RestException("Отзыв не найден", HttpStatusCode.NotFound);
+
+        _dbContext.Remove(review);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    [HttpPost]
+    [Route("{eventId:guid}/reviews/{reviewId:guid}/like")]
+    [Authorize(Roles = nameof(VolunteerUser))]
+    public async Task LikeEventReview([FromRoute] Guid eventId,
+                                      [FromRoute] Guid reviewId,
+                                      CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!.Value;
+        var review = await _dbContext.Events
+                                     .Where(x => x.Id == eventId)
+                                     .SelectMany(x => x.EventReviews)
+                                     .Where(x => x.Id == reviewId)
+                                     .Include(r => r.ReviewScores
+                                                    .Where(x => x.UserId == userId))
+                                     .FirstOrDefaultAsync(cancellationToken)
+                     ?? throw new RestException("Отзыв не найден", HttpStatusCode.NotFound);
+
+        var myScore = review.ReviewScores
+                            .FirstOrDefault(x => x.UserId == userId);
+
+        switch (myScore)
+        {
+            case null:
+                review.ReviewScores.Add(new ReviewScore
+                {
+                    UserId = userId,
+                    ReviewId = reviewId,
+                    Positive = true
+                });
+                break;
+
+            case { Positive: false }:
+                myScore.Positive = true;
+                break;
+
+            case { Positive: true }:
+                _dbContext.Remove(myScore);
+                break;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    [HttpPost]
+    [Route("{eventId:guid}/reviews/{reviewId:guid}/dislike")]
+    [Authorize(Roles = nameof(VolunteerUser))]
+    public async Task DislikeEventReview([FromRoute] Guid eventId,
+                                         [FromRoute] Guid reviewId,
+                                         CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!.Value;
+        var review = await _dbContext.Events
+                                     .Where(x => x.Id == eventId)
+                                     .SelectMany(x => x.EventReviews)
+                                     .Where(x => x.Id == reviewId)
+                                     .Include(r => r.ReviewScores
+                                                    .Where(x => x.UserId == userId))
+                                     .FirstOrDefaultAsync(cancellationToken)
+                     ?? throw new RestException("Отзыв не найден", HttpStatusCode.NotFound);
+
+        var myScore = review.ReviewScores
+                            .FirstOrDefault(x => x.UserId == userId);
+
+        switch (myScore)
+        {
+            case null:
+                review.ReviewScores.Add(new ReviewScore
+                {
+                    UserId = userId,
+                    ReviewId = reviewId,
+                    Positive = false
+                });
+                break;
+
+            case { Positive: false }:
+                _dbContext.Remove(myScore);
+                break;
+
+            case { Positive: true }:
+                myScore.Positive = false;
+                break;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     #endregion
