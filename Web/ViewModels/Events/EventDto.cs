@@ -11,11 +11,13 @@ public class EventDto
     public Guid CompanyId { get; set; }
     public Guid? PreviewId { get; set; }
 
+    public Guid ActivityId { get; set; }
+    public string ActivityName { get; set; } = null!;
+    
     public string CompanyName { get; set; } = null!;
     public string Title { get; set; } = null!;
     public string Description { get; set; } = null!;
     public string Terms { get; set; } = null!;
-    public string Kind { get; set; } = null!;
 
     public ICollection<AddressDto> Locations { get; set; } = new List<AddressDto>();
 
@@ -43,11 +45,12 @@ public class EventDto
         Id = evt.Id,
         CompanyId = evt.CompanyId,
         PreviewId = evt.PreviewId,
+        ActivityId = evt.ActivityId,
+        ActivityName = evt.Activity.Title,
 
         CompanyName = evt.Company.Title,
         Title = evt.Title,
         Description = evt.Description,
-        Kind = evt.Kind,
         Terms = evt.Terms,
 
         Locations = evt.Locations

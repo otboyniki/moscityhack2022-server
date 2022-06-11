@@ -25,12 +25,21 @@ public class EventController : ControllerBase
     #region Events
 
     [HttpGet]
-    public async Task<ICollection<EventDto>> ListEvents(CancellationToken cancellationToken) =>
+    public async Task<Page<EventDto>> ListEvents([FromQuery] ListEventsRequest request,
+                                                 CancellationToken cancellationToken) =>
         await _dbContext.Events
                         .AsNoTracking()
+                        .Where(x => request.Activities == null ||
+                                    request.Activities.Contains(x.ActivityId))
+                        .Where(x => !request.Since.HasValue ||
+                                    request.Since <= x.Meeting.Since)
+                        .Where(x => !request.Until.HasValue ||
+                                    x.Meeting.Until <= request.Until)
+                        .Where(x => request.WithArchived ||
+                                    DateTime.UtcNow <= x.Meeting.Until)
                         .OrderByDescending(x => x.CreatedAt)
                         .Select(EventDto.Projection)
-                        .ToListAsync(cancellationToken);
+                        .PaginateAsync(request, cancellationToken);
 
     [HttpPost]
     [Authorize(Roles = nameof(OrganizerUser))]
@@ -45,10 +54,10 @@ public class EventController : ControllerBase
                         ?? throw new RestException("Кажется тебе сюда нельзя, дружок", HttpStatusCode.Forbidden),
 
             PreviewId = request.PreviewId,
+            ActivityId = request.ActivityId,
             Title = request.Title,
             Description = request.Description,
             Terms = request.Terms,
-            Kind = request.Kind,
 
             Locations = request.Locations
                                .Select(x => x.Address)
@@ -89,10 +98,10 @@ public class EventController : ControllerBase
                   ?? throw new RestException("Мероприятие не найдено", HttpStatusCode.NotFound);
 
         evt.PreviewId = request.PreviewId;
+        evt.ActivityId = request.ActivityId;
         evt.Title = request.Title;
         evt.Description = request.Description;
         evt.Terms = request.Terms;
-        evt.Kind = request.Kind;
 
         evt.Locations = request.Locations
                                .Select(x => x.Address)

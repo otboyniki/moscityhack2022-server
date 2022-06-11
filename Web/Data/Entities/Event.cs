@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations.Schema;
-using NetTopologySuite.Geometries;
 using Web.Data.Interfaces;
 
 namespace Web.Data.Entities;
@@ -21,7 +20,9 @@ public class Event : IEntity, IHasTimestamps
     public string Title { get; set; } = null!;
     public string Description { get; set; } = null!;
     public string Terms { get; set; } = null!;
-    public string Kind { get; set; } = null!;
+
+    public Guid ActivityId { get; set; }
+    public Activity Activity { get; set; } = null!;
 
     public ICollection<Address> Locations { get; set; } = new List<Address>();
 
