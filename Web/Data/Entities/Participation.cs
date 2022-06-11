@@ -11,11 +11,11 @@ public class Participation : IEntity, IHasTimestamps
 {
     public Guid Id { get; set; }
 
-    public Guid EventId { get; set; }
-    public Event Event { get; set; } = null!;
+    public Guid EventSpecializationId { get; set; }
+    public EventSpecialization EventSpecialization { get; set; } = null!;
 
     public Guid VolunteerId { get; set; }
-    public User Volunteer { get; set; } = null!;
+    public VolunteerUser Volunteer { get; set; } = null!;
 
     /// <summary>
     ///     Подтверждение волонтёром

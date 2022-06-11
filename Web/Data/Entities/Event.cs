@@ -15,22 +15,21 @@ public class Event : IEntity, IHasTimestamps
     public Guid CompanyId { get; set; }
     public Company Company { get; set; } = null!;
 
-    public string Description { get; set; } = null!;
+    public Guid? PreviewId { get; set; }
+    public File Preview { get; set; } = null!;
 
-    public Point Location { get; set; } = null!;
+    public string Title { get; set; } = null!;
+    public string Description { get; set; } = null!;
+    public string Terms { get; set; } = null!;
     public string Kind { get; set; } = null!;
 
-    public DateTime Since { get; set; }
-    public DateTime Until { get; set; }
+    public ICollection<Address> Locations { get; set; } = new List<Address>();
 
-    public int MinVolunteersNumber { get; set; }
-    public int MaxVolunteersNumber { get; set; }
+    public DateTimeRange? Recruitment { get; set; }
+    public DateTimeRange Meeting { get; set; } = null!;
+    public string? MeetingNote { get; set; }
 
-    public bool IsRegisteredVolunteersNeeded { get; set; }
-
-    public virtual ICollection<Participation> Participants { get; set; } = new List<Participation>();
-
-    // todo: специальности
+    public virtual ICollection<EventSpecialization> Specializations { get; set; } = new List<EventSpecialization>();
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

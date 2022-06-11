@@ -11,6 +11,7 @@ using Web.Data;
 using Web.Data.Entities;
 using Web.Data.Enums;
 using Web.Exceptions;
+using Web.Extensions;
 using Web.ViewModels.Auth;
 
 namespace Web.Controllers;
@@ -92,7 +93,18 @@ public class AuthController : ControllerBase
             throw new RestException("Введенный код неверный", HttpStatusCode.BadRequest);
         }
 
-        var claims = new List<Claim> { new(ClaimsIdentity.DefaultNameClaimType, verification.Communication.User!.Id.ToString()) };
+        var user = verification.Communication.User;
+        var claims = new List<Claim>
+        {
+            new(ClaimsIdentity.DefaultNameClaimType, user!.Id.ToString()),
+            new(ClaimsIdentity.DefaultRoleClaimType, user.Discriminator)
+        };
+
+        if (user is OrganizerUser)
+        {
+            claims.Add(new(nameof(Company), user.As<OrganizerUser>().CompanyId.ToString()));
+        }
+
         var claimsIdentity = new ClaimsIdentity(claims, "ApplicationCookie", ClaimsIdentity.DefaultNameClaimType,
                                                 ClaimsIdentity.DefaultRoleClaimType);
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));

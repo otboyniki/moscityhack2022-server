@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,10 @@ using Web.Data;
 namespace Web.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20220611124751_AddEvents")]
+    partial class AddEvents
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -95,19 +97,15 @@ namespace Web.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("MeetingNote")
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("PreviewId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Terms")
+                    b.Property<Point>("Location")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("geography (point)");
 
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<DateTime>("Since")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("Until")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -115,8 +113,6 @@ namespace Web.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
-
-                    b.HasIndex("PreviewId");
 
                     b.ToTable("Events");
                 });
@@ -129,10 +125,6 @@ namespace Web.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid");
@@ -147,6 +139,7 @@ namespace Web.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Requirements")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Title")
@@ -226,6 +219,9 @@ namespace Web.Migrations
                     b.Property<bool>("IsMember")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid?>("OrganizerUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -235,6 +231,8 @@ namespace Web.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EventSpecializationId");
+
+                    b.HasIndex("OrganizerUserId");
 
                     b.HasIndex("VolunteerId");
 
@@ -277,6 +275,9 @@ namespace Web.Migrations
 
                     b.Property<string>("LastName")
                         .HasColumnType("text");
+
+                    b.Property<Point>("Location")
+                        .HasColumnType("geography (point)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -402,83 +403,7 @@ namespace Web.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Web.Data.Entities.File", "Preview")
-                        .WithMany()
-                        .HasForeignKey("PreviewId");
-
-                    b.OwnsMany("Web.Data.Entities.Address", "Locations", b1 =>
-                        {
-                            b1.Property<Guid>("EventId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<int>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("integer");
-
-                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
-
-                            b1.Property<Point>("PointLocation")
-                                .HasColumnType("geography (point)");
-
-                            b1.Property<string>("StringLocation")
-                                .HasColumnType("text");
-
-                            b1.HasKey("EventId", "Id");
-
-                            b1.ToTable("Events_Locations");
-
-                            b1.WithOwner()
-                                .HasForeignKey("EventId");
-                        });
-
-                    b.OwnsOne("Web.Data.Entities.DateTimeRange", "Meeting", b1 =>
-                        {
-                            b1.Property<Guid>("EventId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<DateTime>("Since")
-                                .HasColumnType("timestamp with time zone");
-
-                            b1.Property<DateTime>("Until")
-                                .HasColumnType("timestamp with time zone");
-
-                            b1.HasKey("EventId");
-
-                            b1.ToTable("Events");
-
-                            b1.WithOwner()
-                                .HasForeignKey("EventId");
-                        });
-
-                    b.OwnsOne("Web.Data.Entities.DateTimeRange", "Recruitment", b1 =>
-                        {
-                            b1.Property<Guid>("EventId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<DateTime>("Since")
-                                .HasColumnType("timestamp with time zone");
-
-                            b1.Property<DateTime>("Until")
-                                .HasColumnType("timestamp with time zone");
-
-                            b1.HasKey("EventId");
-
-                            b1.ToTable("Events");
-
-                            b1.WithOwner()
-                                .HasForeignKey("EventId");
-                        });
-
                     b.Navigation("Company");
-
-                    b.Navigation("Locations");
-
-                    b.Navigation("Meeting")
-                        .IsRequired();
-
-                    b.Navigation("Preview");
-
-                    b.Navigation("Recruitment");
                 });
 
             modelBuilder.Entity("Web.Data.Entities.EventSpecialization", b =>
@@ -500,6 +425,10 @@ namespace Web.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Web.Data.Entities.OrganizerUser", null)
+                        .WithMany("Participants")
+                        .HasForeignKey("OrganizerUserId");
+
                     b.HasOne("Web.Data.Entities.VolunteerUser", "Volunteer")
                         .WithMany("Participants")
                         .HasForeignKey("VolunteerId")
@@ -516,27 +445,6 @@ namespace Web.Migrations
                     b.HasOne("Web.Data.Entities.File", "Avatar")
                         .WithMany()
                         .HasForeignKey("AvatarId");
-
-                    b.OwnsOne("Web.Data.Entities.Address", "Address", b1 =>
-                        {
-                            b1.Property<Guid>("UserId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<Point>("PointLocation")
-                                .HasColumnType("geography (point)");
-
-                            b1.Property<string>("StringLocation")
-                                .HasColumnType("text");
-
-                            b1.HasKey("UserId");
-
-                            b1.ToTable("Users");
-
-                            b1.WithOwner()
-                                .HasForeignKey("UserId");
-                        });
-
-                    b.Navigation("Address");
 
                     b.Navigation("Avatar");
                 });
@@ -614,6 +522,11 @@ namespace Web.Migrations
                     b.Navigation("Communications");
 
                     b.Navigation("UserInterests");
+                });
+
+            modelBuilder.Entity("Web.Data.Entities.OrganizerUser", b =>
+                {
+                    b.Navigation("Participants");
                 });
 
             modelBuilder.Entity("Web.Data.Entities.VolunteerUser", b =>

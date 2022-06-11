@@ -8,7 +8,10 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
 {
     public void Configure(EntityTypeBuilder<Event> builder)
     {
-        builder.Property(x => x.Location)
-               .HasColumnType("geography (point)");
+        builder.OwnsMany(x => x.Locations, b =>
+        {
+            b.Property(x => x.PointLocation)
+             .HasColumnType("geography (point)");
+        });
     }
 }
