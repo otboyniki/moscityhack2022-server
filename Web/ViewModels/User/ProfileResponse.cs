@@ -13,8 +13,8 @@ public class ProfileResponse
     public Guid? AvatarId { get; set; }
     public AddressDto? Location { get; set; }
     public Gender? Gender { get; set; }
-    public string[] SocialNetworks { get; set; }
-    public string[] Languages { get; set; }
+    public string[]? SocialNetworks { get; set; }
+    public string[]? Languages { get; set; }
     public string? Education { get; set; }
     public ProfileType ProfileType { get; set; }
     public ICollection<InterestModel> Interests { get; set; } = new List<InterestModel>();

@@ -13,8 +13,8 @@ public abstract class User : IdentityUser<Guid>, IEntity, IHasTimestamps
     public string? Patronymic { get; set; }
     public DateTime? Birthday { get; set; }
     public Gender? Gender { get; set; }
-    public string[] SocialNetworks { get; set; }
-    public string[] Languages { get; set; }
+    public string[]? SocialNetworks { get; set; }
+    public string[]? Languages { get; set; }
     public string? Education { get; set; }
 
     public Address? Address { get; set; }
