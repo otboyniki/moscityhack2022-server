@@ -62,7 +62,7 @@ public class EventController : ControllerBase
     public async Task<Entity> CreateEvent([FromBody] CreateEventRequest request,
                                           CancellationToken cancellationToken)
     {
-        if (request.Specialization == null)
+        if (request.Specializations == null)
         {
             throw new RestException("Событие должно иметь одну вакансию", HttpStatusCode.UnprocessableEntity);
         }
@@ -88,22 +88,19 @@ public class EventController : ControllerBase
             Meeting = request.Meeting,
             MeetingNote = request.MeetingNote,
 
-            Specializations = new List<EventSpecialization>
+            Specializations = request.Specializations.Select(specialization => new EventSpecialization()
             {
-                new()
-                {
-                    Title = request.Specialization.Title,
-                    Requirements = request.Specialization.Requirements,
-                    Description = request.Specialization.Description,
+                Title = specialization.Title,
+                Requirements = specialization.Requirements,
+                Description = specialization.Description,
 
-                    IsOnline = request.Specialization.IsOnline,
-                    Ages = request.Specialization.Ages,
+                IsOnline = specialization.IsOnline,
+                Ages = specialization.Ages,
 
-                    MinVolunteersNumber = request.Specialization.MinVolunteersNumber,
-                    MaxVolunteersNumber = request.Specialization.MaxVolunteersNumber,
-                    IsRegisteredVolunteersNeeded = request.Specialization.IsRegisteredVolunteersNeeded
-                }
-            }
+                MinVolunteersNumber = specialization.MinVolunteersNumber,
+                MaxVolunteersNumber = specialization.MaxVolunteersNumber,
+                IsRegisteredVolunteersNeeded = specialization.IsRegisteredVolunteersNeeded
+            }).ToList(),
         };
 
         _dbContext.Add(evt);
