@@ -43,6 +43,12 @@ public class AuthController : ControllerBase
         return new AuthResponse(verification.Id);
     }
 
+    [HttpPost, Route("/sign-out"), Authorize]
+    public async Task SignOut(CancellationToken cancellationToken)
+    {
+        await HttpContext.SignOutAsync();
+    }
+
     [HttpPost, Route("/fast-registration")]
     public async Task<AuthResponse> FastRegistration(FastRegistrationRequest request,
                                                      CancellationToken cancellationToken,
