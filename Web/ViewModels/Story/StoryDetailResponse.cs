@@ -2,7 +2,7 @@ namespace Web.ViewModels.Story;
 
 public class StoryDetailResponse
 {
-    public string CompanyName { get; set; }
+    public string FullName { get; set; }
     public DateTime Date { get; set; }
 
     public int Score { get; set; }

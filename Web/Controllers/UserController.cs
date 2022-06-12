@@ -1,11 +1,12 @@
+using System.Net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Web.Data;
 using Web.Data.Entities;
 using Web.Data.Enums;
+using Web.Exceptions;
 using Web.Extensions;
-using Web.Services;
 using Web.ViewModels;
 using Web.ViewModels.User;
 
@@ -54,7 +55,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost, Route("profile")]
-    public async Task SaveProfile(ProfileRequest model,
+    public async Task SaveProfile(ProfileRequest request,
                                   CancellationToken cancellationToken,
                                   [FromServices] DataContext dataContext)
     {
@@ -65,55 +66,31 @@ public class UserController : ControllerBase
                               .ThenInclude(x => x.Activity)
                               .First(x => x.Id == userId);
 
-        user.FirstName = model.FirstName;
-        user.LastName = model.LastName;
-        user.Patronymic = model.Patronymic;
-        user.Birthday = model.Birthday;
-        user.Gender = model.Gender;
-        user.Address = model.Location?.Address;
-        user.SocialNetworks = model.SocialNetworks;
-        user.Languages = model.Languages;
-        user.Education = model.Education;
+        var avatar = await dataContext.Files
+                                      .FirstOrDefaultAsync(x => x.Id == request.AvatarId, cancellationToken)
+                     ?? throw new RestException("Файл не найден", HttpStatusCode.NotFound);
 
-        ChangeCommunication(user.Communications, CommunicationType.Email, model.Email);
-        ChangeCommunication(user.Communications, CommunicationType.Phone, model.Phone);
+        user.FirstName = request.FirstName;
+        user.LastName = request.LastName;
+        user.Patronymic = request.Patronymic;
+        user.Birthday = request.Birthday;
+        user.Gender = request.Gender;
+        user.Address = request.Location?.Address;
+        user.SocialNetworks = request.SocialNetworks;
+        user.Languages = request.Languages;
+        user.Education = request.Education;
+        user.AvatarId = avatar.Id;
+
+        ChangeCommunication(user.Communications, CommunicationType.Email, request.Email);
+        ChangeCommunication(user.Communications, CommunicationType.Phone, request.Phone);
 
         var userInterests = user.UserActivities.Select(x => x.ActivityId).ToArray();
-        var toAdd = model.ActivityIds.Except(userInterests).ToList();
-        var toRemove = userInterests.Except(model.ActivityIds).ToList();
+        var toAdd = request.ActivityIds.Except(userInterests).ToList();
+        var toRemove = userInterests.Except(request.ActivityIds).ToList();
         toAdd.ForEach(x => user.UserActivities.Add(new UserActivity { ActivityId = x }));
         toRemove.ForEach(x => user.UserActivities.Remove(user.UserActivities.First(y => y.ActivityId == x)));
 
         await dataContext.SaveChangesAsync(cancellationToken);
-    }
-
-    [Authorize]
-    [HttpPut("avatar")]
-    public async Task<object> ChangeAvatar([FromForm] ChangeAvatarRequest request,
-                                           [FromServices] DataContext dataContext,
-                                           CancellationToken cancellationToken)
-    {
-        var fileService = new FileService();
-
-        var userId = User.GetUserId();
-        var user = await dataContext.Users
-                                    .Include(x => x.Avatar)
-                                    .SingleAsync(x => x.Id == userId, cancellationToken);
-
-        var userFile = await fileService.CreateFileAsync("users", request.File, cancellationToken);
-        if (user.AvatarId != null)
-        {
-            fileService.DeleteFile(user.Avatar!);
-            dataContext.Files.Remove(user.Avatar!);
-        }
-
-        user.Avatar = userFile;
-        await dataContext.SaveChangesAsync(cancellationToken);
-
-        return new
-        {
-            Path = $"file/{user.Avatar.Path}",
-        };
     }
 
     private void ChangeCommunication(ICollection<Communication> communications,

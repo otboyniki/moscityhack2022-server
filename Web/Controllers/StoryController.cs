@@ -25,7 +25,7 @@ public class StoryController : ControllerBase
 
         var response = new StoryItemsResponse
         {
-            Items = await filteredStoryItems.Select(GetStoryItemSelector()).ToArrayAsync(cancellationToken),
+            Items = await filteredStoryItems.Select(StoryDto.Projection).ToArrayAsync(cancellationToken),
         };
 
         return response;
@@ -37,7 +37,7 @@ public class StoryController : ControllerBase
                                                        CancellationToken cancellationToken)
     {
         var story = dataContext.Stories
-                               .Include(x => x.Company)
+                               .Include(x => ((CompanyStory)x).Company)
                                .Include(x => x.Comments)
                                .ThenInclude(x => x.ReviewScores)
                                .Include(x => x.Comments)
@@ -60,7 +60,7 @@ public class StoryController : ControllerBase
 
         return new StoryDetailResponse
         {
-            CompanyName = story.Company.Title,
+            FullName = story.FullName,
             Date = story.CreatedAt,
             Score = story.StoryScores.Count,
             IsPositiveScore = story.StoryScores.FirstOrDefault(x => x.UserId == userId)?.Positive,
@@ -84,20 +84,25 @@ public class StoryController : ControllerBase
                                                     CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
-        var user = (OrganizerUser)await dataContext.Users
-                                                   .Include(x => ((OrganizerUser)x).Company)
-                                                   .FirstAsync(x => x.Id == userId, cancellationToken);
+        var user = await dataContext.Users
+                                    .Include(x => ((OrganizerUser)x).Company)
+                                    .FirstAsync(x => x.Id == userId, cancellationToken);
 
-        var story = new Story
+        Story story;
+        switch (user)
         {
-            CompanyId = user.Company.Id,
-            Title = request.Title,
-            ShortDescription = request.ShortDescription,
-            Description = request.Description,
-            Format = request.Format,
-            StoryActivities = request.ActivityIds.Select(x => new StoryActivity { ActivityId = x }).ToArray(),
-            PreviewId = request.PreviewId,
-        };
+            case OrganizerUser organizerUser:
+                var companyStory = CreateStory<CompanyStory>(request);
+                companyStory.CompanyId = organizerUser.Company.Id;
+                story = companyStory;
+                break;
+            case VolunteerUser volunteerUser:
+                var userStory = CreateStory<CompanyStory>(request);
+                story = userStory;
+                break;
+            default:
+                throw new ArgumentException("Неопознанная роль пользователя");
+        }
 
         await dataContext.Stories.AddAsync(story, cancellationToken);
         await dataContext.SaveChangesAsync(cancellationToken);
@@ -198,25 +203,17 @@ public class StoryController : ControllerBase
         await dataContext.SaveChangesAsync(cancellationToken);
     }
 
-    private static Expression<Func<Story, StoryItem>> GetStoryItemSelector()
+    private TStory CreateStory<TStory>(StoryNewRequest request)
+        where TStory : Story, new()
     {
-        return story => new StoryItem
+        return new TStory
         {
-            Id = story.Id,
-            CompanyName = story.Company.Title,
-            Title = story.Title,
-            ShortDescription = story.ShortDescription,
-            Score = story.StoryScores.Sum(x => x.Positive ? 1 : -1),
-            CommentsCount = story.Comments.Count,
-            ViewsCount = story.StoryViews.Count,
-            PreviewId = story.PreviewId,
-            Format = story.Format,
-            Activities = story.StoryActivities.Select(x => new StoryItemsActivityItem
-            {
-                Title = x.Activity.Title,
-                IconId = x.Activity.Icon == null ? null : x.Activity.Icon.Id,
-            }).ToArray(),
-            Date = story.CreatedAt,
+            Title = request.Title,
+            ShortDescription = request.ShortDescription,
+            Description = request.Description,
+            Format = request.Format,
+            StoryActivities = request.ActivityIds.Select(x => new StoryActivity { ActivityId = x }).ToArray(),
+            PreviewId = request.PreviewId,
         };
     }
 

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
 using Web.Data.Interfaces;
 
@@ -21,12 +22,16 @@ public abstract class User : IdentityUser<Guid>, IEntity, IHasTimestamps
     public Guid? AvatarId { get; set; }
     public File? Avatar { get; set; }
 
+    public ICollection<UserStory> Stories { get; set; } = new List<UserStory>();
     public ICollection<Communication> Communications { get; set; } = new List<Communication>();
     public ICollection<UserActivity> UserActivities { get; set; } = new List<UserActivity>();
-    public ICollection<StoryView> HistoryViews { get; set; } = new List<StoryView>();
+    public ICollection<StoryView> StoryViews { get; set; } = new List<StoryView>();
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    [NotMapped]
+    public string FullName => $"{FirstName} {LastName}";
 }
 
 public class VolunteerUser : User

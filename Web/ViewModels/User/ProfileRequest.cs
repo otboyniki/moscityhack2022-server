@@ -9,6 +9,7 @@ public class ProfileRequest
     public string? Patronymic { get; set; }
     public AddressDto? Location { get; set; }
     public DateTime? Birthday { get; set; }
+    public Guid? AvatarId { get; set; }
     public Gender? Gender { get; set; }
     public string? Phone { get; set; }
     public string? Email { get; set; }
