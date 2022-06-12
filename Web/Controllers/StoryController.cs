@@ -16,18 +16,14 @@ namespace Web.Controllers;
 public class StoryController : ControllerBase
 {
     [HttpGet]
-    public async Task<StoryItemsResponse> GetStoryItems([FromQuery] StoryItemsRequest request,
-                                                        [FromServices] DataContext dataContext,
-                                                        CancellationToken cancellationToken)
+    public async Task<StoryDto[]> GetStoryItems([FromQuery] StoryItemsRequest request,
+                                                [FromServices] DataContext dataContext,
+                                                CancellationToken cancellationToken)
     {
         StoryItemsValidate(request);
         var filteredStoryItems = GetFilteredStoryItems(request, dataContext);
 
-        var response = new StoryItemsResponse
-        {
-            Items = await filteredStoryItems.Select(StoryDto.Projection).ToArrayAsync(cancellationToken),
-        };
-
+        var response = await filteredStoryItems.Select(StoryDto.Projection).ToArrayAsync(cancellationToken);
         return response;
     }
 

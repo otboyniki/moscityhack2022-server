@@ -3,11 +3,6 @@ using Web.Data.Entities;
 
 namespace Web.ViewModels.Story;
 
-public class StoryItemsResponse
-{
-    public ICollection<StoryDto> Items { get; set; }
-}
-
 public class StoryDto
 {
     public Guid Id { get; set; }
