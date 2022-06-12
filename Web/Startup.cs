@@ -40,9 +40,10 @@ public class Startup
         });
 
         services.AddCors(options => options.AddPolicy("CorsPolicy", builder =>
-                                                          builder.AllowAnyOrigin()
-                                                                 .AllowAnyMethod()
-                                                                 .AllowAnyHeader()));
+                                                          builder.AllowAnyMethod()
+                                                                 .AllowAnyHeader()
+                                                                 .SetIsOriginAllowed(_ => true)
+                                                                 .AllowCredentials()));
 
         services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options => options.Events = new CookieAuthenticationEvents
