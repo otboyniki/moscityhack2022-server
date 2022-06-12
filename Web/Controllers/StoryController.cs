@@ -96,12 +96,12 @@ public class StoryController : ControllerBase
                 companyStory.CompanyId = organizerUser.Company.Id;
                 story = companyStory;
                 break;
-            case VolunteerUser volunteerUser:
+            case VolunteerUser:
                 var userStory = CreateStory<CompanyStory>(request);
                 story = userStory;
                 break;
             default:
-                throw new ArgumentException("Неопознанная роль пользователя");
+                throw new ArgumentOutOfRangeException();
         }
 
         await dataContext.Stories.AddAsync(story, cancellationToken);
@@ -204,18 +204,23 @@ public class StoryController : ControllerBase
     }
 
     private TStory CreateStory<TStory>(StoryNewRequest request)
-        where TStory : Story, new()
-    {
-        return new TStory
+        where TStory : Story, new() =>
+        request.Format switch
         {
-            Title = request.Title,
-            ShortDescription = request.ShortDescription,
-            Description = request.Description,
-            Format = request.Format,
-            StoryActivities = request.ActivityIds.Select(x => new StoryActivity { ActivityId = x }).ToArray(),
-            PreviewId = request.PreviewId,
+            StoryFormat.Text when request.ShortDescription == null => throw new RestException("Краткое описание обязательно", HttpStatusCode.UnprocessableEntity),
+            StoryFormat.Text when request.Description == null => throw new RestException("Полное описание обязательно", HttpStatusCode.UnprocessableEntity),
+            StoryFormat.Video when request.ShortDescription != null => throw new RestException("Краткое описание не обязательно", HttpStatusCode.UnprocessableEntity),
+            StoryFormat.Video when request.Description != null => throw new RestException("Полное описание не обязательно", HttpStatusCode.UnprocessableEntity),
+            _ => new TStory
+            {
+                Title = request.Title,
+                ShortDescription = request.ShortDescription,
+                Description = request.Description,
+                Format = request.Format,
+                StoryActivities = request.ActivityIds.Select(x => new StoryActivity { ActivityId = x }).ToArray(),
+                PreviewId = request.PreviewId,
+            }
         };
-    }
 
     private static IQueryable<Story> GetFilteredStoryItems(StoryItemsRequest request,
                                                            DataContext dataContext)

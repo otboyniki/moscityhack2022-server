@@ -8,8 +8,8 @@ public abstract class Story : IEntity, IHasTimestamps
     public Guid Id { get; set; }
 
     public string Title { get; set; }
-    public string ShortDescription { get; set; }
-    public string Description { get; set; }
+    public string? ShortDescription { get; set; }
+    public string? Description { get; set; }
     public StoryFormat Format { get; set; }
 
     public Guid? PreviewId { get; set; }
