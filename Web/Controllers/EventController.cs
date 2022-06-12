@@ -282,7 +282,7 @@ public class EventController : ControllerBase
             throw new RestException("Не твоя организация", HttpStatusCode.Forbidden);
         }
 
-        var url = $"otboyniki-moscityhack2022.ru/quick-registration?specializationId={specializationId}";
+        var url = $"otboyniki-moscityhack2022.ru/quick-registration?eventId={eventId}&specializationId={specializationId}";
         return Redirect($"http://qrcoder.ru/code/?{UrlEncoder.Default.Encode(url!)}&10&3");
     }
 
