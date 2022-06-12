@@ -8,6 +8,7 @@ using Web.Data.Enums;
 using Web.Exceptions;
 using Web.Extensions;
 using Web.ViewModels;
+using Web.ViewModels.Events;
 using Web.ViewModels.User;
 
 namespace Web.Controllers;
@@ -16,6 +17,11 @@ namespace Web.Controllers;
 [ApiController, Authorize]
 public class UserController : ControllerBase
 {
+    private readonly DataContext _dbContext;
+
+    public UserController(DataContext dbContext) =>
+        _dbContext = dbContext;
+
     [HttpGet, Route("profile")]
     public async Task<ProfileResponse> GetProfile(CancellationToken cancellationToken,
                                                   [FromServices] DataContext dataContext)
@@ -121,4 +127,43 @@ public class UserController : ControllerBase
             }
         }
     }
+
+    [HttpGet]
+    [Route("near-events")]
+    public async Task<ICollection<EventDto>> ListNearEvents(CancellationToken cancellationToken) =>
+        await _dbContext.Events
+                        .AsNoTracking()
+                        .Where(e => e.Specializations
+                                     .SelectMany(s => s.Participants)
+                                     .Any(x => x.VolunteerId == User.GetUserId()))
+                        .OrderBy(x => x.Meeting.Since)
+                        .Select(EventDto.ConditionalProjection(s => s.Participants
+                                                                     .Any(x => x.VolunteerId == User.GetUserId())))
+                        .ToListAsync(cancellationToken);
+
+    [HttpGet]
+    [Route("visited-events")]
+    public async Task<ICollection<EventDto>> ListVisitedEvents(CancellationToken cancellationToken) =>
+        await _dbContext.Events
+                        .AsNoTracking()
+                        .Where(e => e.Specializations
+                                     .SelectMany(s => s.Participants)
+                                     .Any(x => x.VolunteerId == User.GetUserId() &&
+                                               x.IsVisited))
+                        .OrderByDescending(x => x.Meeting.Until)
+                        .Select(EventDto.ConditionalProjection(s => s.Participants
+                                                                     .Any(x => x.VolunteerId == User.GetUserId() &&
+                                                                               x.IsVisited)))
+                        .ToListAsync(cancellationToken);
+
+    [HttpGet]
+    [Route("event-reviews")]
+    public async Task<ICollection<ReviewDto>> ListEventReviews(CancellationToken cancellationToken) =>
+        await _dbContext.Events
+                        .AsNoTracking()
+                        .SelectMany(x => x.EventReviews)
+                        .Where(x => x.UserId == User.GetUserId())
+                        .OrderByDescending(x => x.CreatedAt)
+                        .Select(ReviewDto.Projection(User.GetUserId()!.Value))
+                        .ToListAsync(cancellationToken);
 }

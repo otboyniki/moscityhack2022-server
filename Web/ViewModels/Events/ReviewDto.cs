@@ -10,6 +10,8 @@ public class ReviewDto
     public string Username { get; set; } = null!;
     public Guid? AvatarId { get; set; }
 
+    public EventSummaryDto EventSummary { get; set; } = null!;
+
     public string Text { get; set; } = null!;
 
     public int CompanyRate { get; set; }
@@ -23,25 +25,36 @@ public class ReviewDto
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
 
-    public static Func<Guid, Expression<Func<EventReview, ReviewDto>>> Projection => userId => r => new ReviewDto
-    {
-        Id = r.Id,
+    public static Func<Guid, Expression<Func<EventReview, ReviewDto>>> Projection => userId =>
+        r => new ReviewDto
+        {
+            Id = r.Id,
 
-        Username = r.User.FirstName!,
-        AvatarId = r.User.AvatarId,
+            Username = r.User.FirstName!,
+            AvatarId = r.User.AvatarId,
 
-        Text = r.Text,
+            EventSummary = new EventSummaryDto
+            {
+                EventId = r.EventId,
+                Title = r.Event.Title,
+                Meeting = r.Event.Meeting,
+                StringLocation = r.Event.Locations
+                                  .FirstOrDefault(x => x.StringLocation != null)!
+                                  .StringLocation!
+            },
 
-        CompanyRate = r.CompanyRate,
-        GoalComplianceRate = r.GoalComplianceRate,
+            Text = r.Text,
 
-        PositiveScore = r.ReviewScores.Count(x => x.Positive),
-        NiggativeScore = r.ReviewScores.Count(x => !x.Positive),
-        MyScore = r.ReviewScores
-                   .FirstOrDefault(x => x.UserId == userId)!
-                   .Positive,
+            CompanyRate = r.CompanyRate,
+            GoalComplianceRate = r.GoalComplianceRate,
 
-        CreatedAt = r.CreatedAt,
-        UpdatedAt = r.UpdatedAt
-    };
+            PositiveScore = r.ReviewScores.Count(x => x.Positive),
+            NiggativeScore = r.ReviewScores.Count(x => !x.Positive),
+            MyScore = r.ReviewScores
+                       .FirstOrDefault(x => x.UserId == userId)!
+                       .Positive,
+
+            CreatedAt = r.CreatedAt,
+            UpdatedAt = r.UpdatedAt
+        };
 }
