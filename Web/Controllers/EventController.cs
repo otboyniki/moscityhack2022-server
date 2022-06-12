@@ -566,4 +566,74 @@ public class EventController : ControllerBase
     }
 
     #endregion
+
+    #region Participants
+
+    [HttpGet]
+    [Route("{eventId:guid}/participants")]
+    [Authorize(Roles = nameof(OrganizerUser))]
+    public async Task<object> ListParticipants([FromRoute] Guid eventId,
+                                               CancellationToken cancellationToken) =>
+        await _dbContext.Events
+                        .AsNoTracking()
+                        .Where(x => x.Id == eventId)
+                        .SelectMany(x => x.Specializations)
+                        .SelectMany(x => x.Participants)
+                        .GroupBy(x => new { x.EventSpecializationId })
+                        .Select(g => new
+                        {
+                            g.Key.EventSpecializationId,
+                            Volunteers = g.Select(x => new
+                                          {
+                                              ParticipantId = x.Id,
+
+                                              x.IsConfirmed,
+                                              x.IsVisited,
+                                              x.IsMember,
+
+                                              Volunteer = new
+                                              {
+                                                  VolunteerId = x.Volunteer.Id,
+                                                  x.Volunteer.FirstName,
+                                                  x.Volunteer.LastName,
+                                                  x.Volunteer.Patronymic,
+
+                                                  Communications = x.Volunteer
+                                                                    .Communications
+                                                                    .Select(c => new
+                                                                    {
+                                                                        c.Type,
+                                                                        c.Value
+                                                                    })
+                                                                    .ToList()
+                                              }
+                                          })
+                                          .ToList()
+                        })
+                        .ToDictionaryAsync(
+                            x => x.EventSpecializationId,
+                            x => x.Volunteers,
+                            cancellationToken);
+
+    [HttpPost]
+    [Route("{eventId:guid}/participants/{participantId:guid}/mark-visited")]
+    [Authorize(Roles = nameof(OrganizerUser))]
+    public async Task MarkParticipantVisited([FromRoute] Guid eventId,
+                                             [FromRoute] Guid participantId,
+                                             [FromBody] bool isVisited,
+                                             CancellationToken cancellationToken)
+    {
+        var participation = await _dbContext.Events
+                                            .Where(x => x.Id == eventId)
+                                            .SelectMany(x => x.Specializations)
+                                            .SelectMany(x => x.Participants)
+                                            .Where(x => x.Id == participantId)
+                                            .FirstOrDefaultAsync(cancellationToken)
+                            ?? throw new RestException("Запись об участии не найдена", HttpStatusCode.NotFound);
+
+        participation.IsVisited = isVisited;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    #endregion
 }
