@@ -56,11 +56,11 @@ public class FileController : ControllerBase
     }
 
     [HttpGet, AllowAnonymous]
-    [Route("{fileId:guid}")]
-    public async Task<FileStreamResult> DownloadFile([FromRoute] Guid fileId, CancellationToken cancellationToken)
+    [Route("{fileId:guid}"), Route("null")]
+    public async Task<FileStreamResult> DownloadFile([FromRoute] Guid? fileId, CancellationToken cancellationToken)
     {
         var file = await _dbContext.Files
-                                   .SingleOrDefaultAsync(x => x.Id == fileId, cancellationToken)
+                                   .SingleOrDefaultAsync(x => x.Id == (fileId ?? Guid.Empty), cancellationToken)
                    ?? throw new RestException("Файл не найден", HttpStatusCode.NotFound);
 
         return File(_fileService.LoadFile(file.Path), file.ContentType);
