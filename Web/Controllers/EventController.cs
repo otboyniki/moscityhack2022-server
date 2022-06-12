@@ -30,14 +30,27 @@ public class EventController : ControllerBase
                                                  CancellationToken cancellationToken) =>
         await _dbContext.Events
                         .AsNoTracking()
+                        .Where(x => request.StringLocation == null ||
+                                    x.Locations
+                                     .Any(l => EF.Functions.ILike(l.StringLocation!, $"%{request.StringLocation}%")))
                         .Where(x => request.Activities == null ||
                                     request.Activities.Contains(x.ActivityId))
                         .Where(x => !request.Since.HasValue ||
                                     request.Since <= x.Meeting.Since)
                         .Where(x => !request.Until.HasValue ||
                                     x.Meeting.Until <= request.Until)
-                        .Where(x => request.WithArchived ||
-                                    DateTime.UtcNow <= x.Meeting.Until)
+                        .Where(x => !request.IsArchived.HasValue ||
+                                    (request.IsArchived.Value && x.Meeting.Until < DateTime.UtcNow) ||
+                                    (!request.IsArchived.Value && DateTime.UtcNow <= x.Meeting.Since))
+                        .Where(e => !request.IsOnline.HasValue ||
+                                    e.Specializations
+                                     .Any(x => x.IsOnline == request.IsOnline))
+                        .Where(e => !request.FromAge.HasValue ||
+                                    e.Specializations
+                                     .Any(x => request.FromAge.Value <= x.Ages!.From))
+                        .Where(e => !request.ToAge.HasValue ||
+                                    e.Specializations
+                                     .Any(x => x.Ages!.To <= request.ToAge.Value))
                         .OrderByDescending(x => x.CreatedAt)
                         .Select(EventDto.Projection)
                         .PaginateAsync(request, cancellationToken);

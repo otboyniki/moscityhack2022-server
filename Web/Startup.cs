@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Web.Data;
 using Web.Extensions;
 using Web.Services;
+using Web.Swagger;
 
 namespace Web;
 
@@ -31,6 +32,8 @@ public class Startup
                                                       .EnableSensitiveDataLogging());
 
         services.AddSwaggerGen();
+        services.ConfigureOptions<SwaggerConfiguration>();
+
         services.AddHttpLogging(options =>
         {
             options.LoggingFields = HttpLoggingFields.RequestHeaders | HttpLoggingFields.RequestBody;

@@ -12,6 +12,9 @@ public class EventSpecialization : IEntity, IHasTimestamps
     public string? Requirements { get; set; }
     public string Description { get; set; } = null!;
 
+    public bool IsOnline { get; set; }
+    public IntRange? Ages { get; set; }
+
     public Guid EventId { get; set; }
     public Event Event { get; set; } = null!;
 
