@@ -6,6 +6,7 @@ using Web.Data.Entities;
 using Web.Data.Enums;
 using Web.Extensions;
 using Web.Services;
+using Web.ViewModels;
 using Web.ViewModels.User;
 
 namespace Web.Controllers;
@@ -19,14 +20,14 @@ public class UserController : ControllerBase
                                                   [FromServices] DataContext dataContext)
     {
         var userId = Guid.Parse(User.Identity!.Name!);
-        var user = dataContext.Users
-                              .Include(x => x.Avatar)
-                              .Include(x => x.Communications)
-                              .Include(x => x.UserActivities)
-                              .ThenInclude(x => x.Activity)
-                              .First(x => x.Id == userId);
+        var user = await dataContext.Users
+                                    .Include(x => x.Avatar)
+                                    .Include(x => x.Communications)
+                                    .Include(x => x.UserActivities)
+                                    .ThenInclude(x => x.Activity)
+                                    .FirstAsync(x => x.Id == userId, cancellationToken);
 
-        var allInterests = dataContext.Activities.ToArray();
+        var allInterests = await dataContext.Activities.ToArrayAsync(cancellationToken);
         var userInterestIds = user.UserActivities.Select(x => x.Activity.Id).ToArray();
 
         return new ProfileResponse
@@ -38,6 +39,11 @@ public class UserController : ControllerBase
             Email = user.Communications.FirstOrDefault(x => x.Type == CommunicationType.Email)?.Value,
             Phone = user.Communications.FirstOrDefault(x => x.Type == CommunicationType.Phone)?.Value,
             AvatarId = user.Avatar?.Id,
+            Gender = user.Gender,
+            Location = user.Address == null ? null : AddressDto.Projection.Compile()(user.Address),
+            SocialNetworks = user.SocialNetworks,
+            Languages = user.Languages,
+            Education = user.Education,
             Interests = allInterests.Select(x => new InterestModel
             {
                 Id = x.Id,
@@ -63,13 +69,18 @@ public class UserController : ControllerBase
         user.LastName = model.LastName;
         user.Patronymic = model.Patronymic;
         user.Birthday = model.Birthday;
+        user.Gender = model.Gender;
+        user.Address = model.Location?.Address;
+        user.SocialNetworks = model.SocialNetworks;
+        user.Languages = model.Languages;
+        user.Education = model.Education;
 
         ChangeCommunication(user.Communications, CommunicationType.Email, model.Email);
         ChangeCommunication(user.Communications, CommunicationType.Phone, model.Phone);
 
         var userInterests = user.UserActivities.Select(x => x.ActivityId).ToArray();
-        var toAdd = model.InterestIds.Except(userInterests).ToList();
-        var toRemove = userInterests.Except(model.InterestIds).ToList();
+        var toAdd = model.ActivityIds.Except(userInterests).ToList();
+        var toRemove = userInterests.Except(model.ActivityIds).ToList();
         toAdd.ForEach(x => user.UserActivities.Add(new UserActivity { ActivityId = x }));
         toRemove.ForEach(x => user.UserActivities.Remove(user.UserActivities.First(y => y.ActivityId == x)));
 

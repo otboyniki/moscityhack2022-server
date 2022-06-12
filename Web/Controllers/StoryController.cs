@@ -79,9 +79,9 @@ public class StoryController : ControllerBase
     }
 
     [HttpPost, Authorize(Roles = nameof(OrganizerUser))]
-    public async Task<StoryNewResponse> AddStory(StoryNewRequest request,
-                                                 [FromServices] DataContext dataContext,
-                                                 CancellationToken cancellationToken)
+    public async Task<StoryNewResponse> CreateStory(StoryNewRequest request,
+                                                    [FromServices] DataContext dataContext,
+                                                    CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
         var user = (OrganizerUser)await dataContext.Users

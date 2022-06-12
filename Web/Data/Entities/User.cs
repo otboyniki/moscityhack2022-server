@@ -11,6 +11,10 @@ public abstract class User : IdentityUser<Guid>, IEntity, IHasTimestamps
     public string? LastName { get; set; }
     public string? Patronymic { get; set; }
     public DateTime? Birthday { get; set; }
+    public Gender? Gender { get; set; }
+    public string[] SocialNetworks { get; set; }
+    public string[] Languages { get; set; }
+    public string? Education { get; set; }
 
     public Address? Address { get; set; }
 
@@ -34,4 +38,10 @@ public class OrganizerUser : User
 {
     public Guid CompanyId { get; set; }
     public Company Company { get; set; } = null!;
+}
+
+public enum Gender
+{
+    Male = 1,
+    Female = 2,
 }
