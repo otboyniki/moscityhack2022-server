@@ -15,7 +15,7 @@ namespace Web.Controllers;
 [ApiController, Authorize]
 public class StoryController : ControllerBase
 {
-    [HttpGet]
+    [HttpGet, AllowAnonymous]
     public async Task<StoryDto[]> GetStoryItems([FromQuery] StoryItemsRequest request,
                                                 [FromServices] DataContext dataContext,
                                                 CancellationToken cancellationToken)
@@ -23,8 +23,7 @@ public class StoryController : ControllerBase
         StoryItemsValidate(request);
         var filteredStoryItems = GetFilteredStoryItems(request, dataContext);
 
-        var response = await filteredStoryItems.Select(StoryDto.Projection).ToArrayAsync(cancellationToken);
-        return response;
+        return await filteredStoryItems.Select(StoryDto.Projection).ToArrayAsync(cancellationToken);
     }
 
     [HttpGet, Route("/{storyId:guid}")]
