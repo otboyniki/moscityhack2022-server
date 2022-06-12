@@ -46,18 +46,22 @@ public class Startup
                                                                  .AllowCredentials()));
 
         services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(options => options.Events = new CookieAuthenticationEvents
+                .AddCookie(options =>
                 {
-                    OnRedirectToLogin = context =>
+                    options.Cookie.SameSite = SameSiteMode.None;
+                    options.Events = new CookieAuthenticationEvents
                     {
-                        context.Response.StatusCode = 401;
-                        return Task.CompletedTask;
-                    },
-                    OnRedirectToAccessDenied = context =>
-                    {
-                        context.Response.StatusCode = 403;
-                        return Task.CompletedTask;
-                    },
+                        OnRedirectToLogin = context =>
+                        {
+                            context.Response.StatusCode = 401;
+                            return Task.CompletedTask;
+                        },
+                        OnRedirectToAccessDenied = context =>
+                        {
+                            context.Response.StatusCode = 403;
+                            return Task.CompletedTask;
+                        },
+                    };
                 });
         services.AddAuthorization();
 
