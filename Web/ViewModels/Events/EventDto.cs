@@ -40,11 +40,11 @@ public class EventDto
 
 
     [NotMapped, JsonIgnore]
-    public static Expression<Func<Event, EventDto>> Projection => ConditionalProjection(_ => true);
+    public static Expression<Func<Event, EventDto>> Projection => ConditionalProjection(null, _ => true);
 
     [NotMapped, JsonIgnore]
-    public static Func<Expression<Func<EventSpecialization, bool>>, Expression<Func<Event, EventDto>>>
-        ConditionalProjection => condition => evt => new EventDto
+    public static Func<Guid?, Expression<Func<EventSpecialization, bool>>, Expression<Func<Event, EventDto>>>
+        ConditionalProjection => (userId, condition) => evt => new EventDto
     {
         Id = evt.Id,
         CompanyId = evt.CompanyId,
@@ -85,7 +85,7 @@ public class EventDto
         Specializations = evt.Specializations
                              .AsQueryable()
                              .Where(condition)
-                             .Select(EventSpecializationDto.Projection)
+                             .Select(EventSpecializationDto.ConditionalProjection(userId))
                              .ToList(),
 
         CreatedAt = evt.CreatedAt,

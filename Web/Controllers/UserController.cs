@@ -137,8 +137,10 @@ public class UserController : ControllerBase
                                      .SelectMany(s => s.Participants)
                                      .Any(x => x.VolunteerId == User.GetUserId()))
                         .OrderBy(x => x.Meeting.Since)
-                        .Select(EventDto.ConditionalProjection(s => s.Participants
-                                                                     .Any(x => x.VolunteerId == User.GetUserId())))
+                        .Select(EventDto.ConditionalProjection(
+                            User.GetUserId()!.Value,
+                            s => s.Participants
+                                  .Any(x => x.VolunteerId == User.GetUserId())))
                         .ToListAsync(cancellationToken);
 
     [HttpGet]
@@ -151,9 +153,11 @@ public class UserController : ControllerBase
                                      .Any(x => x.VolunteerId == User.GetUserId() &&
                                                x.IsVisited))
                         .OrderByDescending(x => x.Meeting.Until)
-                        .Select(EventDto.ConditionalProjection(s => s.Participants
-                                                                     .Any(x => x.VolunteerId == User.GetUserId() &&
-                                                                               x.IsVisited)))
+                        .Select(EventDto.ConditionalProjection(
+                            User.GetUserId()!.Value,
+                            s => s.Participants
+                                  .Any(x => x.VolunteerId == User.GetUserId() &&
+                                            x.IsVisited)))
                         .ToListAsync(cancellationToken);
 
     [HttpGet]

@@ -20,6 +20,7 @@ public class EventSpecializationDto
     public int MaxVolunteersNumber { get; set; }
     public bool IsRegisteredVolunteersNeeded { get; set; }
 
+    public bool? IsParticipant { get; set; }
     public int TotalParticipants { get; set; }
     public int ConfirmedParticipants { get; set; }
     public int ReservedParticipants { get; set; }
@@ -30,7 +31,11 @@ public class EventSpecializationDto
 
     [NotMapped, JsonIgnore]
     public static Expression<Func<EventSpecialization, EventSpecializationDto>> Projection =>
-        s => new EventSpecializationDto
+        ConditionalProjection(null);
+
+    [NotMapped, JsonIgnore]
+    public static Func<Guid?, Expression<Func<EventSpecialization, EventSpecializationDto>>>
+        ConditionalProjection => userId => s => new EventSpecializationDto
         {
             Id = s.Id,
 
@@ -45,6 +50,11 @@ public class EventSpecializationDto
             MaxVolunteersNumber = s.MaxVolunteersNumber,
             IsRegisteredVolunteersNeeded = s.IsRegisteredVolunteersNeeded,
 
+            IsParticipant = userId.HasValue
+                ? s.Participants
+                   .AsQueryable()
+                   .Any(x => x.VolunteerId == userId.Value)
+                : null,
             TotalParticipants = s.Participants.Count,
             ConfirmedParticipants = s.Participants
                                      .Count(x => x.IsConfirmed),

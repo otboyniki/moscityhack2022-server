@@ -54,7 +54,7 @@ public class EventController : ControllerBase
                                      .Any(x => x.Ages == null ||
                                                x.Ages!.To <= request.ToAge.Value))
                         .OrderByDescending(x => x.CreatedAt)
-                        .Select(EventDto.Projection)
+                        .Select(EventDto.ConditionalProjection(User.GetUserId(), _ => true))
                         .PaginateAsync(request, cancellationToken);
 
     [HttpPost]
@@ -119,7 +119,7 @@ public class EventController : ControllerBase
         await _dbContext.Events
                         .AsNoTracking()
                         .Where(x => x.Id == eventId)
-                        .Select(EventDto.Projection)
+                        .Select(EventDto.ConditionalProjection(User.GetUserId(), _ => true))
                         .FirstOrDefaultAsync(cancellationToken)
         ?? throw new RestException("Мероприятие не найдено", HttpStatusCode.NotFound);
 
