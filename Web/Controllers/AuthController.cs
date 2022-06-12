@@ -97,12 +97,12 @@ public class AuthController : ControllerBase
         var claims = new List<Claim>
         {
             new(ClaimsIdentity.DefaultNameClaimType, user!.Id.ToString()),
-            new(ClaimsIdentity.DefaultRoleClaimType, user.Discriminator)
+            new(ClaimsIdentity.DefaultRoleClaimType, user.Discriminator),
         };
 
         if (user is OrganizerUser)
         {
-            claims.Add(new(nameof(Company), user.As<OrganizerUser>().CompanyId.ToString()));
+            claims.Add(new Claim(nameof(Company), user.As<OrganizerUser>().CompanyId.ToString()));
         }
 
         var claimsIdentity = new ClaimsIdentity(claims, "ApplicationCookie", ClaimsIdentity.DefaultNameClaimType,
