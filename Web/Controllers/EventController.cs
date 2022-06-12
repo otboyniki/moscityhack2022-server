@@ -47,19 +47,26 @@ public class EventController : ControllerBase
                                      .Any(x => x.IsOnline == request.IsOnline))
                         .Where(e => !request.FromAge.HasValue ||
                                     e.Specializations
-                                     .Any(x => request.FromAge.Value <= x.Ages!.From))
+                                     .Any(x => x.Ages == null ||
+                                               request.FromAge.Value <= x.Ages!.From))
                         .Where(e => !request.ToAge.HasValue ||
                                     e.Specializations
-                                     .Any(x => x.Ages!.To <= request.ToAge.Value))
+                                     .Any(x => x.Ages == null ||
+                                               x.Ages!.To <= request.ToAge.Value))
                         .OrderByDescending(x => x.CreatedAt)
                         .Select(EventDto.Projection)
                         .PaginateAsync(request, cancellationToken);
 
     [HttpPost]
     [Authorize(Roles = nameof(OrganizerUser))]
-    public async Task<Entity> CreateEvent([FromBody] UpdateEventRequest request,
+    public async Task<Entity> CreateEvent([FromBody] CreateEventRequest request,
                                           CancellationToken cancellationToken)
     {
+        if (request.Specialization == null)
+        {
+            throw new RestException("Событие должно иметь одну вакансию", HttpStatusCode.UnprocessableEntity);
+        }
+
         var evt = new Event
         {
             CompanyId = User.FindFirst(nameof(Company))
@@ -80,6 +87,23 @@ public class EventController : ControllerBase
             Recruitment = request.Recruitment,
             Meeting = request.Meeting,
             MeetingNote = request.MeetingNote,
+
+            Specializations = new List<EventSpecialization>
+            {
+                new()
+                {
+                    Title = request.Specialization.Title,
+                    Requirements = request.Specialization.Requirements,
+                    Description = request.Specialization.Description,
+
+                    IsOnline = request.Specialization.IsOnline,
+                    Ages = request.Specialization.Ages,
+
+                    MinVolunteersNumber = request.Specialization.MinVolunteersNumber,
+                    MaxVolunteersNumber = request.Specialization.MaxVolunteersNumber,
+                    IsRegisteredVolunteersNeeded = request.Specialization.IsRegisteredVolunteersNeeded
+                }
+            }
         };
 
         _dbContext.Add(evt);
@@ -218,6 +242,17 @@ public class EventController : ControllerBase
                                    .Where(x => x.Id == specializationId)
                                    .FirstOrDefaultAsync(cancellationToken)
                    ?? throw new RestException("Специализация не найдена", HttpStatusCode.NotFound);
+
+        var count = await _dbContext.Events
+                                    .AsNoTracking()
+                                    .Where(x => x.Id == eventId)
+                                    .SelectMany(x => x.Specializations)
+                                    .CountAsync(cancellationToken);
+
+        if (count == 1)
+        {
+            throw new RestException("Событие лолжно иметь как минимум одну вакансию", HttpStatusCode.Conflict);
+        }
 
         _dbContext.Remove(spec);
         await _dbContext.SaveChangesAsync(cancellationToken);
