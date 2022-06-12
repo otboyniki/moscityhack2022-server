@@ -162,6 +162,9 @@ public class EventController : ControllerBase
             Requirements = request.Requirements,
             Description = request.Description,
 
+            IsOnline = request.IsOnline,
+            Ages = request.Ages,
+
             MinVolunteersNumber = request.MinVolunteersNumber,
             MaxVolunteersNumber = request.MaxVolunteersNumber,
             IsRegisteredVolunteersNeeded = request.IsRegisteredVolunteersNeeded,
@@ -191,6 +194,9 @@ public class EventController : ControllerBase
         spec.Title = request.Title;
         spec.Requirements = request.Requirements;
         spec.Description = request.Description;
+
+        spec.IsOnline = request.IsOnline;
+        spec.Ages = request.Ages;
 
         spec.MinVolunteersNumber = request.MinVolunteersNumber;
         spec.MaxVolunteersNumber = request.MaxVolunteersNumber;

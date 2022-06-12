@@ -13,6 +13,9 @@ public class EventSpecializationDto
     public string? Requirements { get; set; }
     public string Description { get; set; } = null!;
 
+    public bool IsOnline { get; set; }
+    public IntRange? Ages { get; set; }
+
     public int MinVolunteersNumber { get; set; }
     public int MaxVolunteersNumber { get; set; }
     public bool IsRegisteredVolunteersNeeded { get; set; }
@@ -26,25 +29,29 @@ public class EventSpecializationDto
 
 
     [NotMapped, JsonIgnore]
-    public static Expression<Func<EventSpecialization, EventSpecializationDto>> Projection => s => new EventSpecializationDto
-    {
-        Id = s.Id,
+    public static Expression<Func<EventSpecialization, EventSpecializationDto>> Projection =>
+        s => new EventSpecializationDto
+        {
+            Id = s.Id,
 
-        Title = s.Title,
-        Requirements = s.Requirements,
-        Description = s.Description,
+            Title = s.Title,
+            Requirements = s.Requirements,
+            Description = s.Description,
 
-        MinVolunteersNumber = s.MinVolunteersNumber,
-        MaxVolunteersNumber = s.MaxVolunteersNumber,
-        IsRegisteredVolunteersNeeded = s.IsRegisteredVolunteersNeeded,
+            IsOnline = s.IsOnline,
+            Ages = s.Ages,
 
-        TotalParticipants = s.Participants.Count,
-        ConfirmedParticipants = s.Participants
-                                 .Count(x => x.IsConfirmed),
-        ReservedParticipants = s.Participants
-                                .Count(x => !x.IsMember),
+            MinVolunteersNumber = s.MinVolunteersNumber,
+            MaxVolunteersNumber = s.MaxVolunteersNumber,
+            IsRegisteredVolunteersNeeded = s.IsRegisteredVolunteersNeeded,
 
-        CreatedAt = s.CreatedAt,
-        UpdatedAt = s.UpdatedAt
-    };
+            TotalParticipants = s.Participants.Count,
+            ConfirmedParticipants = s.Participants
+                                     .Count(x => x.IsConfirmed),
+            ReservedParticipants = s.Participants
+                                    .Count(x => !x.IsMember),
+
+            CreatedAt = s.CreatedAt,
+            UpdatedAt = s.UpdatedAt
+        };
 }
