@@ -38,6 +38,7 @@ public class StoryController : ControllerBase
     {
         var story = dataContext.Stories
                                .Include(x => ((CompanyStory)x).Company)
+                               .Include(x => ((UserStory)x).User)
                                .Include(x => x.Comments)
                                .ThenInclude(x => x.ReviewScores)
                                .Include(x => x.Comments)
@@ -78,7 +79,7 @@ public class StoryController : ControllerBase
         };
     }
 
-    [HttpPost, Authorize(Roles = nameof(OrganizerUser))]
+    [HttpPost, Authorize]
     public async Task<StoryNewResponse> CreateStory(StoryNewRequest request,
                                                     [FromServices] DataContext dataContext,
                                                     CancellationToken cancellationToken)
@@ -225,7 +226,10 @@ public class StoryController : ControllerBase
     private static IQueryable<Story> GetFilteredStoryItems(StoryItemsRequest request,
                                                            DataContext dataContext)
     {
-        var storyQuery = dataContext.Stories.AsQueryable();
+        var storyQuery = dataContext.Stories
+                                    .Include(x => ((CompanyStory)x).Company)
+                                    .Include(x => ((UserStory)x).User)
+                                    .AsQueryable();
         var selector = (Expression<Func<Story, int>>)(request.Sort.Value switch
         {
             StorySortValue.Score => x => x.StoryScores.Count,

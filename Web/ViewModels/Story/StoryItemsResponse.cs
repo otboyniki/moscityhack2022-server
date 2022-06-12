@@ -13,7 +13,7 @@ public class StoryDto
     public Guid Id { get; set; }
     public string FullName { get; set; }
     public string Title { get; set; }
-    public string ShortDescription { get; set; }
+    public string? ShortDescription { get; set; }
     public int Score { get; set; }
     public int CommentsCount { get; set; }
     public int ViewsCount { get; set; }

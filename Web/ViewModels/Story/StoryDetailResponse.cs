@@ -9,7 +9,7 @@ public class StoryDetailResponse
     public bool? IsPositiveScore { get; set; }
 
     public string Title { get; set; }
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     public ICollection<StoryCommentItem> Comments { get; set; }
 }
