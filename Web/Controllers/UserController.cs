@@ -37,6 +37,13 @@ public class UserController : ControllerBase
         var allInterests = await dataContext.Activities.ToArrayAsync(cancellationToken);
         var userInterestIds = user.UserActivities.Select(x => x.Activity.Id).ToArray();
 
+        var profileType = user switch
+        {
+            OrganizerUser => ProfileType.Organizer,
+            VolunteerUser => ProfileType.Volunteer,
+            _ => throw new ArgumentOutOfRangeException(),
+        };
+
         return new ProfileResponse
         {
             FirstName = user.FirstName,
@@ -57,6 +64,7 @@ public class UserController : ControllerBase
                 Title = x.Title,
                 Enable = userInterestIds.Contains(x.Id),
             }).ToArray(),
+            ProfileType = profileType,
         };
     }
 
@@ -138,9 +146,9 @@ public class UserController : ControllerBase
                                      .Any(x => x.VolunteerId == User.GetUserId()))
                         .OrderBy(x => x.Meeting.Since)
                         .Select(EventDto.ConditionalProjection(
-                            User.GetUserId()!.Value,
-                            s => s.Participants
-                                  .Any(x => x.VolunteerId == User.GetUserId())))
+                                    User.GetUserId()!.Value,
+                                    s => s.Participants
+                                          .Any(x => x.VolunteerId == User.GetUserId())))
                         .ToListAsync(cancellationToken);
 
     [HttpGet]
@@ -154,10 +162,10 @@ public class UserController : ControllerBase
                                                x.IsVisited))
                         .OrderByDescending(x => x.Meeting.Until)
                         .Select(EventDto.ConditionalProjection(
-                            User.GetUserId()!.Value,
-                            s => s.Participants
-                                  .Any(x => x.VolunteerId == User.GetUserId() &&
-                                            x.IsVisited)))
+                                    User.GetUserId()!.Value,
+                                    s => s.Participants
+                                          .Any(x => x.VolunteerId == User.GetUserId() &&
+                                                    x.IsVisited)))
                         .ToListAsync(cancellationToken);
 
     [HttpGet]

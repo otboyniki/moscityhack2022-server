@@ -16,6 +16,7 @@ public class ProfileResponse
     public string[] SocialNetworks { get; set; }
     public string[] Languages { get; set; }
     public string? Education { get; set; }
+    public ProfileType ProfileType { get; set; }
     public ICollection<InterestModel> Interests { get; set; } = new List<InterestModel>();
 }
 
@@ -24,4 +25,10 @@ public class InterestModel
     public Guid Id { get; set; }
     public string Title { get; set; }
     public bool Enable { get; set; }
+}
+
+public enum ProfileType
+{
+    Organizer = 1,
+    Volunteer = 2,
 }
