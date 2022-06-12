@@ -48,7 +48,7 @@ public class Startup
         services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
-                    options.Cookie.SameSite = SameSiteMode.None;
+                    options.Cookie.SameSite = SameSiteMode.Strict;
                     options.Events = new CookieAuthenticationEvents
                     {
                         OnRedirectToLogin = context =>
