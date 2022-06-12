@@ -48,7 +48,7 @@ public class Startup
         services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
-                    options.Cookie.SameSite = SameSiteMode.Strict;
+                    options.Cookie.Domain = ".otboyniki-moscityhack2022.ru";
                     options.Events = new CookieAuthenticationEvents
                     {
                         OnRedirectToLogin = context =>
