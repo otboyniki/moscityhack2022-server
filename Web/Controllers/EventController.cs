@@ -259,6 +259,34 @@ public class EventController : ControllerBase
     }
 
     [HttpGet]
+    [Route("/{eventId:guid}/specializations/{specializationId:guid}/qr/invite")]
+    public async Task<IActionResult> CreateQrForInvite([FromRoute] Guid eventId,
+                                                       [FromRoute] Guid specializationId,
+                                                       CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!.Value;
+        var user = (OrganizerUser)await _dbContext.Users
+                                                  .Include(x => ((OrganizerUser)x).Company)
+                                                  .FirstAsync(x => x.Id == userId, cancellationToken);
+
+        var specialization = await _dbContext.Events
+                                             .Where(x => x.Id == eventId)
+                                             .SelectMany(x => x.Specializations)
+                                             .Include(x => x.Event)
+                                             .ThenInclude(x => x.Company)
+                                             .FirstOrDefaultAsync(x => x.Id == specializationId, cancellationToken)
+                             ?? throw new RestException("Мероприятие не найдено", HttpStatusCode.NotFound);
+
+        if (user.CompanyId != specialization.Event.CompanyId)
+        {
+            throw new RestException("Не твоя организация", HttpStatusCode.Forbidden);
+        }
+
+        var url = $"otboyniki-moscityhack2022.ru/quick-registration?specializationId={specializationId}";
+        return Redirect($"http://qrcoder.ru/code/?{UrlEncoder.Default.Encode(url!)}&10&3");
+    }
+
+    [HttpGet]
     [Route("{eventId:guid}/specializations/{specializationId:guid}/qr")]
     [Authorize(Roles = nameof(VolunteerUser))]
     public async Task<IActionResult> ReadEventSpecializationQr([FromRoute] Guid eventId,
