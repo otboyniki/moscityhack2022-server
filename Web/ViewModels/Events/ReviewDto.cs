@@ -36,11 +36,18 @@ public class ReviewDto
             EventSummary = new EventSummaryDto
             {
                 EventId = r.EventId,
+                PreviewId = r.Event.PreviewId,
                 Title = r.Event.Title,
                 Meeting = r.Event.Meeting,
-                StringLocation = r.Event.Locations
-                                  .FirstOrDefault(x => x.StringLocation != null)!
-                                  .StringLocation!
+                Locations = r.Event.Locations
+                             .Select(x => new AddressDto
+                             {
+                                 StringLocation = x.StringLocation,
+                                 PointLocation = x.PointLocation != null
+                                     ? new PointDto(x.PointLocation)
+                                     : null
+                             })
+                             .ToList()
             },
 
             Text = r.Text,

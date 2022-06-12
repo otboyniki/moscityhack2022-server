@@ -559,6 +559,11 @@ public class EventController : ControllerBase
                                      .FirstOrDefaultAsync(cancellationToken)
                      ?? throw new RestException("Отзыв не найден", HttpStatusCode.NotFound);
 
+        if (review.UserId == userId)
+        {
+            throw new RestException("Самолайки это грех", HttpStatusCode.UnprocessableEntity);
+        }
+
         var myScore = review.ReviewScores
                             .FirstOrDefault(x => x.UserId == userId);
 
@@ -601,6 +606,11 @@ public class EventController : ControllerBase
                                                     .Where(x => x.UserId == userId))
                                      .FirstOrDefaultAsync(cancellationToken)
                      ?? throw new RestException("Отзыв не найден", HttpStatusCode.NotFound);
+
+        if (review.UserId == userId)
+        {
+            throw new RestException("Самолайки это грех", HttpStatusCode.UnprocessableEntity);
+        }
 
         var myScore = review.ReviewScores
                             .FirstOrDefault(x => x.UserId == userId);
