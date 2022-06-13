@@ -26,7 +26,7 @@ public class StoryController : ControllerBase
         return await filteredStoryItems.Select(StoryDto.Projection).ToArrayAsync(cancellationToken);
     }
 
-    [HttpGet, Route("/{storyId:guid}")]
+    [HttpGet, Route("{storyId:guid}")]
     public async Task<StoryDetailResponse> DetailStory([FromRoute] Guid storyId,
                                                        [FromServices] DataContext dataContext,
                                                        CancellationToken cancellationToken)
@@ -106,7 +106,7 @@ public class StoryController : ControllerBase
         return new StoryNewResponse();
     }
 
-    [HttpPost, Route("/{storyId:guid}/comment")]
+    [HttpPost, Route("{storyId:guid}/comment")]
     public async Task<CreateCommentResponse> CreateComment([FromRoute] Guid storyId,
                                                            [FromBody] CreateCommentRequest request,
                                                            [FromServices] DataContext dataContext,
@@ -131,7 +131,7 @@ public class StoryController : ControllerBase
         return new CreateCommentResponse();
     }
 
-    [HttpPost, Route("/{storyId:guid}/comment/{commentId:guid}/like")]
+    [HttpPost, Route("{storyId:guid}/comment/{commentId:guid}/like")]
     public async Task LikeComment([FromRoute] Guid storyId,
                                   [FromRoute] Guid commentId,
                                   [FromServices] DataContext dataContext,
@@ -165,7 +165,7 @@ public class StoryController : ControllerBase
         await dataContext.SaveChangesAsync(cancellationToken);
     }
 
-    [HttpPost, Route("/{storyId:guid}/comment/{commentId:guid}/dislike")]
+    [HttpPost, Route("{storyId:guid}/comment/{commentId:guid}/dislike")]
     public async Task DislikeComment([FromRoute] Guid storyId,
                                      [FromRoute] Guid commentId,
                                      [FromServices] DataContext dataContext,
