@@ -47,11 +47,14 @@ public class StoryController : ControllerBase
             throw new RestException("История не найдена", HttpStatusCode.NotFound);
         }
 
-        var userId = User.GetUserId()!.Value;
-        if (story.StoryViews.All(x => x.UserId != userId))
+        var userId = User.GetUserId();
+        if (userId.HasValue)
         {
-            story.StoryViews.Add(new StoryView { UserId = userId });
-            await dataContext.SaveChangesAsync(cancellationToken);
+            if (story.StoryViews.All(x => x.UserId != userId))
+            {
+                story.StoryViews.Add(new StoryView { UserId = userId.Value });
+                await dataContext.SaveChangesAsync(cancellationToken);
+            }
         }
 
         return new StoryDetailResponse
