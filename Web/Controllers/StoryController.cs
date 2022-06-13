@@ -40,6 +40,7 @@ public class StoryController : ControllerBase
                                .ThenInclude(x => x.User)
                                .ThenInclude(x => x.Avatar)
                                .Include(x => x.StoryScores)
+                               .ThenInclude(x => x.User)
                                .Include(x => x.StoryViews)
                                .FirstOrDefault(x => x.Id == storyId);
         if (story == null)
