@@ -62,7 +62,7 @@ public class EventController : ControllerBase
     public async Task<Entity> CreateEvent([FromBody] CreateEventRequest request,
                                           CancellationToken cancellationToken)
     {
-        if (request.Specializations.Count > 0)
+        if (request.Specializations.Count == 0)
         {
             throw new RestException("Событие должно как минимум иметь одну вакансию", HttpStatusCode.UnprocessableEntity);
         }
@@ -88,7 +88,7 @@ public class EventController : ControllerBase
             Meeting = request.Meeting,
             MeetingNote = request.MeetingNote,
 
-            Specializations = request.Specializations.Select(specialization => new EventSpecialization()
+            Specializations = request.Specializations.Select(specialization => new EventSpecialization
             {
                 Title = specialization.Title,
                 Requirements = specialization.Requirements,
