@@ -73,7 +73,7 @@ public class StoryController : ControllerBase
                 Date = x.CreatedAt,
                 Text = x.Text,
                 Score = x.ReviewScores.Sum(y => y.Positive ? 1 : -1),
-                IsPositiveScore = x.ReviewScores.FirstOrDefault(y => y.Review.UserId == userId)?.Positive,
+                IsPositiveScore = x.ReviewScores.FirstOrDefault(y => y.UserId == userId)?.Positive,
                 AvatarPath = x.User.Avatar == null ? null : $"file/{x.User.Avatar.Path}",
             }).ToArray(),
         };
