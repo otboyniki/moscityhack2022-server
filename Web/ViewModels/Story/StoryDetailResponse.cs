@@ -16,6 +16,8 @@ public class StoryDetailResponse
 
 public class StoryCommentItem
 {
+    public Guid Id { get; set; }
+
     public string FullName { get; set; }
     public DateTime Date { get; set; }
     public string Text { get; set; }

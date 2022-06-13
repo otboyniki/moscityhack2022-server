@@ -67,6 +67,7 @@ public class StoryController : ControllerBase
             Description = story.Description,
             Comments = story.Comments.Select(x => new StoryCommentItem
             {
+                Id = x.Id,
                 FullName = $"{x.User.FirstName} {x.User.LastName}",
                 Date = x.CreatedAt,
                 Text = x.Text,
