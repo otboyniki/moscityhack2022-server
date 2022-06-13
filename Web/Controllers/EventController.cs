@@ -256,7 +256,7 @@ public class EventController : ControllerBase
     }
 
     [HttpGet]
-    [Route("/{eventId:guid}/specializations/{specializationId:guid}/qr/invite")]
+    [Route("{eventId:guid}/specializations/{specializationId:guid}/qr/invite")]
     public async Task<IActionResult> CreateQrForInvite([FromRoute] Guid eventId,
                                                        [FromRoute] Guid specializationId,
                                                        CancellationToken cancellationToken)
