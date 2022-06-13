@@ -26,7 +26,7 @@ public class StoryController : ControllerBase
         return await filteredStoryItems.Select(StoryDto.Projection).ToArrayAsync(cancellationToken);
     }
 
-    [HttpGet, Route("{storyId:guid}")]
+    [HttpGet, Route("{storyId:guid}"), AllowAnonymous]
     public async Task<StoryDetailResponse> DetailStory([FromRoute] Guid storyId,
                                                        [FromServices] DataContext dataContext,
                                                        CancellationToken cancellationToken)
