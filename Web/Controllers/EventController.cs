@@ -257,9 +257,9 @@ public class EventController : ControllerBase
 
     [HttpGet]
     [Route("{eventId:guid}/specializations/{specializationId:guid}/qr/invite")]
-    public async Task<IActionResult> CreateQrForInvite([FromRoute] Guid eventId,
-                                                       [FromRoute] Guid specializationId,
-                                                       CancellationToken cancellationToken)
+    public async Task<string> CreateQrForInvite([FromRoute] Guid eventId,
+                                                [FromRoute] Guid specializationId,
+                                                CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!.Value;
         var user = (OrganizerUser)await _dbContext.Users
@@ -280,7 +280,7 @@ public class EventController : ControllerBase
         }
 
         var url = $"otboyniki-moscityhack2022.ru/quick-registration?eventId={eventId}&specializationId={specializationId}";
-        return Redirect($"http://qrcoder.ru/code/?{UrlEncoder.Default.Encode(url!)}&10&3");
+        return $"http://qrcoder.ru/code/?{UrlEncoder.Default.Encode(url!)}&10&3";
     }
 
     [HttpGet]
